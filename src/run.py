@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
+
 import csv
-import itertools
 import gzip
 import os.path
 import re
@@ -15,8 +16,11 @@ from sqlalchemy import create_engine
 ####################
 # OrthoMCL
 ####################
-def get_orthoMCL():
-    """OrthoMCL
+def get_orthomcl():
+    """OrthoMCL ortholog table.
+
+    Version 5 (2015-07-23)
+    http://orthomcl.org/common/downloads/release-5/pairs/orthologs.txt.gz
     """
 
     # Read the ortholog list
@@ -45,18 +49,18 @@ def _get_ensembl_56_ensp_ensg_map():
     ../data/ensembl/56/homo_sapiens_core_56_37a.sql.gz
     """
     ensp_ensg_df = pd.read_csv("../data/ensembl/56/translation_stable_id.txt.gz", sep='\t',
-                               compression='gzip', header=None, usecols=[0,1],
+                               compression='gzip', header=None, usecols=[0, 1],
                                names=["translation_id", "ENSP"])
 
-    translation_to_transcript = pd.read_csv("../data/ensembl/56/translation.txt.gz", sep='\t', 
-                                            compression='gzip', header=None, usecols=[0,1],
+    translation_to_transcript = pd.read_csv("../data/ensembl/56/translation.txt.gz", sep='\t',
+                                            compression='gzip', header=None, usecols=[0, 1],
                                             names=["translation_id", "transcript_id"])
-    transcript_to_gene = pd.read_csv("../data/ensembl/56/transcript.txt.gz", sep='\t', 
-                                            compression='gzip', header=None, usecols=[0,1],
-                                            names=["transcript_id", "gene_id"])
+    transcript_to_gene = pd.read_csv("../data/ensembl/56/transcript.txt.gz", sep='\t',
+                                     compression='gzip', header=None, usecols=[0, 1],
+                                     names=["transcript_id", "gene_id"])
     gene_id_to_gene = pd.read_csv("../data/ensembl/56/gene_stable_id.txt.gz", sep='\t',
-                                            compression='gzip', header=None, usecols=[0,1],
-                                            names=["gene_id", "HS_ENSG"])
+                                  compression='gzip', header=None, usecols=[0, 1],
+                                  names=["gene_id", "HS_ENSG"])
 
     ensp_ensg_df = ensp_ensg_df.set_index("translation_id") \
         .join(translation_to_transcript.set_index("translation_id")) \
@@ -76,7 +80,7 @@ def get_oma():
     """
 
     # Read the ortholog list
-    oma = pd.read_csv('../data/oma/orthologs.tsv', sep='\t', header=None, usecols=[0,1], 
+    oma = pd.read_csv('../data/oma/orthologs.tsv', sep='\t', header=None, usecols=[0, 1],
                       names=["CE_WORMPEP", "HS_ENSG"])
 
     # Convert OMA IDs to Wormbase
@@ -87,7 +91,7 @@ def get_oma():
     oma = pd.concat([oma, get_ce_wb_updated(oma)], axis=1) \
             .sort_values(['CE_WB_CURRENT', 'HS_ENSG'])
 
-    # Rearrange the columns      
+    # Rearrange the columns
     oma = oma[['CE_WB_CURRENT', 'HS_ENSG', 'CE_WB_OLD', 'CE_WB_COMMENT']]
 
     return oma
@@ -102,20 +106,20 @@ def _get_oma_wb_map():
     http://omabrowser.org/All/oma-wormbase.txt.gz
     """
     wp_to_wb = {}
-    with open('../data/wormbase/wormpep.table235') as f:
-        reader = csv.reader(f, delimiter="\t")
+    with open('../data/wormbase/wormpep.table235') as file:
+        reader = csv.reader(file, delimiter="\t")
         for row in reader:
             wp_to_wb[row[1]] = row[2]
 
     oma_to_wb = {}
-    with gzip.open('../data/oma/oma-wormbase.txt.gz', 'rt') as f:
-        reader = csv.reader(f, delimiter="\t")
+    with gzip.open('../data/oma/oma-wormbase.txt.gz', 'rt') as file:
+        reader = csv.reader(file, delimiter="\t")
         next(reader)
         next(reader)
-        for oma_id, wp in reader:
-            if not wp.startswith('CE'):
+        for oma_id, wp_id in reader:
+            if not wp_id.startswith('CE'):
                 continue
-            oma_to_wb[oma_id] = wp_to_wb[wp]
+            oma_to_wb[oma_id] = wp_to_wb[wp_id]
 
     oma_to_wb = pd.DataFrame.from_dict(oma_to_wb, orient='index')
     oma_to_wb.columns = ['CE_WB_OLD']
@@ -133,7 +137,7 @@ def get_compara():
     """
 
     # Read the ortholog list
-    compara = pd.read_csv('../data/ensembl/87/orthologs.tsv', sep='\t', header=0, usecols=[0,2],
+    compara = pd.read_csv('../data/ensembl/87/orthologs.tsv', sep='\t', header=0, usecols=[0, 2],
                           names=["CE_WB_OLD", "HS_ENSG"])
 
     # Deal with WB ID changes
@@ -148,23 +152,23 @@ def get_compara():
 ####################
 # InParanoid
 ####################
-def get_inparanoid(uniprot_map_built = True):
+def get_inparanoid(uniprot_map_built=True):
     """InParanoid
 
     Data from InParanoid 8.0
     http://inparanoid.sbc.su.se/download/8.0_current/Orthologs_other_formats/C.elegans/InParanoid.C.elegans-H.sapiens.tgz
     """
-    ORTHOLOG_FILE = '../data/inparanoid/orthologs.tsv'
+    ortholog_file = '../data/inparanoid/orthologs.tsv'
 
-    if not os.path.isfile(ORTHOLOG_FILE):
-        _make_inparanoid_table(ORTHOLOG_FILE)
+    if not os.path.isfile(ortholog_file):
+        _make_inparanoid_table(ortholog_file)
 
     # Read the ortholog list
-    inparanoid = pd.read_csv(ORTHOLOG_FILE, sep='\t', header=0, usecols=[0,1],
+    inparanoid = pd.read_csv(ortholog_file, sep='\t', header=0, usecols=[0, 1],
                              names=["CE_UNIPROT", "HS_UNIPROT"])
 
     if not uniprot_map_built:
-        # Generate lists of UniProt genes to 
+        # Generate lists of UniProt genes to
         inparanoid_uniprot_list_ce = inparanoid['CE_UNIPROT'].drop_duplicates().sort_values()
         inparanoid_uniprot_list_ce.to_csv('../data/inparanoid/uniprot_list_ce.csv', index=False)
         print("Number of unique worm UniProt IDs: {}".format(len(inparanoid_uniprot_list_ce)))
@@ -194,7 +198,7 @@ def get_inparanoid(uniprot_map_built = True):
 
     return inparanoid
 
-def _make_inparanoid_table(ORTHOLOG_FILE):
+def _make_inparanoid_table(ortholog_file):
     """Creates an ortholog table for InParanoid from the raw SQL table.
 
     Extracts the C. elegans and H. sapiens orthologs from the raw SQL table.
@@ -204,29 +208,29 @@ def _make_inparanoid_table(ORTHOLOG_FILE):
     directly returning a DataFrame here.
 
     Args:
-        ORTHOLOG_FILE (str): Location where the ortholog table will be written
+        ortholog_file (str): Location where the ortholog table will be written
     """
     ortholog_list = []
-    with open('../data/inparanoid/sqltable.C.elegans-H.sapiens') as f:
-        reader = csv.reader(f, delimiter='\t')
-        
+    with open('../data/inparanoid/sqltable.C.elegans-H.sapiens') as file:
+        reader = csv.reader(file, delimiter='\t')
+
         current_group = {'group_id': None, 'cele': [], 'hsap': []}
-        
+
         for row in reader:
             group_id = int(row[0])
             species = row[2]
             uniprot_id = row[4]
-            
+
             gene_info = uniprot_id
-            
+
             if group_id != current_group['group_id']:
                 if (len(current_group['cele']) > 0) and (len(current_group['hsap']) > 0):
                     ortholog_list += generate_combinations(current_group)
-                
+
                 current_group['group_id'] = group_id
                 current_group['cele'] = []
                 current_group['hsap'] = []
-                
+
             if species == "C.elegans":
                 current_group['cele'].append(gene_info)
             elif species == "H.sapiens":
@@ -235,8 +239,8 @@ def _make_inparanoid_table(ORTHOLOG_FILE):
         if (len(current_group['cele']) > 0) and (len(current_group['hsap']) > 0):
             ortholog_list += generate_combinations(current_group)
 
-    with open(ORTHOLOG_FILE, 'w') as f:
-        writer = csv.writer(f, delimiter='\t')
+    with open(ortholog_file, 'w') as file:
+        writer = csv.writer(file, delimiter='\t')
         writer.writerow(['uniprot_id_cele', 'uniprot_id_hsap'])
         for row in ortholog_list:
             writer.writerow(row)
@@ -252,18 +256,18 @@ def _get_inparanoid_uniprot_wb_map():
         pandas.DataFrame: DataFrame containing mapping information between UniProt and WB IDs.
     """
     uniprot_wb_map_1 = pd.read_csv('../data/inparanoid/uniprot_wb_map.tsv', sep='\t', header=0,
-                                usecols=[0,1], names=['CE_UNIPROT', 'CE_WB_OLD'])
+                                   usecols=[0, 1], names=['CE_UNIPROT', 'CE_WB_OLD'])
 
     # From scraping the history pages
     uniprot_wb_map_2 = pd.read_csv('../data/inparanoid/uniprot_wb_map_scraped.tsv', sep=',',
-                                usecols=[0,1], names=['CE_UNIPROT', 'CE_WB_OLD'])
+                                   usecols=[0, 1], names=['CE_UNIPROT', 'CE_WB_OLD'])
 
     # Combine the two data frames
     uniprot_wb_map = pd.concat([uniprot_wb_map_1, uniprot_wb_map_2], axis=0)
 
     return uniprot_wb_map
 
-def _get_inparanoid_uniprot_ensembl_map(uniprot_map_built = True):
+def _get_inparanoid_uniprot_ensembl_map(uniprot_map_built=True):
     """Returns the UniProt to Ensembl map for InParanoid.
 
     The first portion is obtained by using the ID mapping tool from UniProt available at
@@ -273,11 +277,11 @@ def _get_inparanoid_uniprot_ensembl_map(uniprot_map_built = True):
     mapped by scraping the history pages as with _get_inparanoid_uniprot_wb_map().
 
     Returns:
-        pandas.DataFrame: DataFrame containing mapping information between 
+        pandas.DataFrame: DataFrame containing mapping information between
             UniProt and Ensembl IDs.
     """
     uniprot_ensg_df = pd.read_csv('../data/inparanoid/uniprot_ensembl_map.tsv', sep='\t',
-                            header=0, usecols=[0,1], names=['HS_UNIPROT', 'HS_ENSG'])
+                                  header=0, usecols=[0, 1], names=['HS_UNIPROT', 'HS_ENSG'])
 
     # Results putting the "not found" list to Ensembl 74 BioMart:
     #   http://dec2013.archive.ensembl.org/biomart/martview/
@@ -310,7 +314,7 @@ def _get_inparanoid_uniprot_ensembl_map(uniprot_map_built = True):
 ####################
 # OrthoInspector
 ####################
-def get_orthoinspector(preprocessed = True, uniprot_map_built = True):
+def get_orthoinspector(preprocessed=True, uniprot_map_built=True):
     """OrthoInspector
 
     http://lbgi.fr/orthoinspector/dbquery_qfo/data/CSV/62.csv.gz
@@ -321,15 +325,17 @@ def get_orthoinspector(preprocessed = True, uniprot_map_built = True):
 
     # Read the orthologs
     orthoinspector = pd.read_csv('../data/orthoinspector/orthologs.csv', sep=',',
-                  usecols=[0,1], names=["CE_UNIPROT", "HS_UNIPROT"])
+                                 usecols=[0, 1], names=["CE_UNIPROT", "HS_UNIPROT"])
 
     if not uniprot_map_built:
         orthoinspector_uniprot_list_ce = orthoinspector['CE_UNIPROT'].drop_duplicates().sort_values()
-        orthoinspector_uniprot_list_ce.to_csv('../data/orthoinspector/uniprot_list_ce.csv', index=False)
+        orthoinspector_uniprot_list_ce. \
+            to_csv('../data/orthoinspector/uniprot_list_ce.csv', index=False)
         print("Number of unique worm UniProt IDs: {}".format(len(orthoinspector_uniprot_list_ce)))
 
         orthoinspector_uniprot_list_hs = orthoinspector['HS_UNIPROT'].drop_duplicates().sort_values()
-        orthoinspector_uniprot_list_hs.to_csv('../data/orthoinspector/uniprot_list_hs.csv', index=False)
+        orthoinspector_uniprot_list_hs \
+            .to_csv('../data/orthoinspector/uniprot_list_hs.csv', index=False)
         print("Number of unique human UniProt IDs: {}".format(len(orthoinspector_uniprot_list_hs)))
 
     # Convert C.elegans UniProt to WB ID
@@ -337,7 +343,8 @@ def get_orthoinspector(preprocessed = True, uniprot_map_built = True):
                               how='left', on='CE_UNIPROT')
 
     # Convert H. sapiens Uniprot to WB ID
-    orthoinspector = pd.merge(orthoinspector, _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built),
+    orthoinspector = pd.merge(orthoinspector,
+                              _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built),
                               how='left', on='HS_UNIPROT')
 
     # Deal with WB ID changes
@@ -361,18 +368,18 @@ def _get_orthoinspector_uniprot_wb_map():
         pandas.DataFrame: DataFrame containing mapping information between UniProt and WB IDs.
     """
     uniprot_wb_df_1 = pd.read_csv('../data/orthoinspector/uniprot_wb_map.tsv', sep='\t', header=0,
-                                usecols=[0,1], names=['CE_UNIPROT', 'CE_WB_OLD'])
+                                  usecols=[0, 1], names=['CE_UNIPROT', 'CE_WB_OLD'])
 
     # From scraping the history pages
     uniprot_wb_df_2 = pd.read_csv('../data/orthoinspector/uniprot_wb_map_scraped.csv', sep=',',
-                                usecols=[0,1], names=['CE_UNIPROT', 'CE_WB_OLD'])
+                                  usecols=[0, 1], names=['CE_UNIPROT', 'CE_WB_OLD'])
 
     # Combine the two data frames
     uniprot_wb_df = pd.concat([uniprot_wb_df_1, uniprot_wb_df_2], axis=0)
 
     return uniprot_wb_df
 
-def _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built = True):
+def _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built=True):
     """Returns the UniProt to Ensembl map for OrthoInspector.
 
     The first portion is obtained by using the ID mapping tool from UniProt available at
@@ -382,16 +389,16 @@ def _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built = True):
     mapped by scraping the history pages as with _get_inparanoid_uniprot_wb_map().
 
     Returns:
-        pandas.DataFrame: DataFrame containing mapping information between 
+        pandas.DataFrame: DataFrame containing mapping information between
             UniProt and Ensembl IDs.
     """
     uniprot_ensg_df = pd.read_csv('../data/orthoinspector/uniprot_ensembl_map.tsv', sep='\t',
-                                  header=0, usecols=[0,1], names=['HS_UNIPROT', 'HS_ENSG'])
+                                  header=0, usecols=[0, 1], names=['HS_UNIPROT', 'HS_ENSG'])
 
     # Results putting the "not found" list to Ensembl 74 BioMart:
     #   http://dec2013.archive.ensembl.org/biomart/martview/
     biomart_df_1 = pd.read_csv('../data/orthoinspector/uniprot_ensembl_map_swissprot.tsv',
-                              sep='\t', header=0, names=['HS_ENSG', 'HS_UNIPROT'])
+                               sep='\t', header=0, names=['HS_ENSG', 'HS_UNIPROT'])
     biomart_df_2 = pd.read_csv('../data/orthoinspector/uniprot_ensembl_map_trembl.tsv',
                                sep='\t', header=0, names=['HS_ENSG', 'HS_UNIPROT'])
     biomart_df = pd.concat([biomart_df_1, biomart_df_2], axis=0).drop_duplicates()
@@ -421,18 +428,20 @@ def _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built = True):
 # Build 68, 2014-05-06
 # <ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data>
 ####################
-def get_homologene(preprocessed = True):
-    ORTHOLOG_FILE = '../data/homologene/orthologs.tsv'
+def get_homologene(preprocessed=True):
+    """Homologene
+    """
+    ortholog_file = '../data/homologene/orthologs.tsv'
 
     if not preprocessed:
         print('Preprocessing Homologene orthologs...')
         subprocess.Popen(['./preprocess.sh'], cwd='../data/homologene', shell=True)
 
-    if not os.path.isfile(ORTHOLOG_FILE):
-        _make_homologene_table(ORTHOLOG_FILE)
+    if not os.path.isfile(ortholog_file):
+        _make_homologene_table(ortholog_file)
 
     # Read the ortholog list
-    homologene = pd.read_csv(ORTHOLOG_FILE, sep='\t', header=0, usecols=[0,1],
+    homologene = pd.read_csv(ortholog_file, sep='\t', header=0, usecols=[0, 1],
                              names=["CE_ENTREZ", "HS_ENTREZ"])
 
     homologene_entrez_list_ce = homologene['CE_ENTREZ'].drop_duplicates().sort_values()
@@ -444,7 +453,7 @@ def get_homologene(preprocessed = True):
     print("Number of unique human Entrez IDs: {}".format(len(homologene_entrez_list_hs)))
 
     # Convert C.elegans Entrez to WB ID
-    homologene = pd.merge(homologene, _get_homologene_entrez_wb_map(homologene_entrez_list_ce), 
+    homologene = pd.merge(homologene, _get_homologene_entrez_wb_map(homologene_entrez_list_ce),
                           how='left', on='CE_ENTREZ')
 
     # Convert H. Sapiens Entrez to WB ID
@@ -454,14 +463,14 @@ def get_homologene(preprocessed = True):
     # Deal with WB ID changes
     homologene = pd.concat([homologene, get_ce_wb_updated(homologene)], axis=1) \
             .sort_values(['CE_WB_CURRENT', 'HS_ENSG']).reset_index(drop=True)
-    
+
     # Rearrange the columns
-    homologene = homologene[['CE_WB_CURRENT', 'HS_ENSG', 'CE_WB_OLD', 
+    homologene = homologene[['CE_WB_CURRENT', 'HS_ENSG', 'CE_WB_OLD',
                              'CE_WB_COMMENT', 'CE_ENTREZ', 'HS_ENTREZ']]
 
     return homologene
 
-def _make_homologene_table(ORTHOLOG_FILE):
+def _make_homologene_table(ortholog_file):
     """Creates an ortholog table for Homologene from the raw table.
 
     Extracts the C. elegans and H. sapiens orthologs from the raw table.
@@ -471,29 +480,29 @@ def _make_homologene_table(ORTHOLOG_FILE):
     directly returning a DataFrame here.
 
     Args:
-        ORTHOLOG_FILE (str): Location where the ortholog table will be written
+        ortholog_file (str): Location where the ortholog table will be written
     """
     ortholog_list = []
-    with open('../data/homologene/homologene.txt') as f:
-        reader = csv.reader(f, delimiter='\t')
-        
+    with open('../data/homologene/homologene.txt') as file:
+        reader = csv.reader(file, delimiter='\t')
+
         current_group = {'group_id': None, 'cele': [], 'hsap': []}
-        
+
         for row in reader:
             group_id = int(row[0])
             taxonomy_id = int(row[1])
             entrez_id = int(row[2])
-            
+
             gene_info = entrez_id
-            
+
             if group_id != current_group['group_id']:
                 if (len(current_group['cele']) > 0) and (len(current_group['hsap']) > 0):
                     ortholog_list += generate_combinations(current_group)
-                
+
                 current_group['group_id'] = group_id
                 current_group['cele'] = []
                 current_group['hsap'] = []
-                
+
             if taxonomy_id == 6239:
                 current_group['cele'].append(gene_info)
             elif taxonomy_id == 9606:
@@ -502,8 +511,8 @@ def _make_homologene_table(ORTHOLOG_FILE):
         if (len(current_group['cele']) > 0) and (len(current_group['hsap']) > 0):
             ortholog_list += generate_combinations(current_group)
 
-    with open(ORTHOLOG_FILE, 'w') as f:
-        writer = csv.writer(f, delimiter='\t')
+    with open(ortholog_file, 'w') as file:
+        writer = csv.writer(file, delimiter='\t')
         writer.writerow(['entrez_id_cele', 'entrez_id_hsap'])
         for row in ortholog_list:
             writer.writerow(row)
@@ -513,14 +522,14 @@ def _get_homologene_entrez_wb_map(homologene_entrez_list_ce):
 
     The first portion is obtained by using gene info table from
     <ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz>,
-    downloaded on 2017-01-28. The ones that could not be found here are further found by 
+    downloaded on 2017-01-28. The ones that could not be found here are further found by
     scraping the ID history pages.
 
     Returns:
         pandas.DataFrame: DataFrame containing mapping information between Entrez and WB IDs.
     """
     entrez_wb_df = pd.read_csv('../data/entrez/Caenorhabditis_elegans.gene_info.gz', sep='\t',
-                               header=0, usecols=[1,5], names=["CE_ENTREZ", "CE_WB_OLD"])
+                               header=0, usecols=[1, 5], names=["CE_ENTREZ", "CE_WB_OLD"])
 
     # Pick out WB ID entries and separate with commas
     entrez_wb_df['CE_WB_OLD'] = entrez_wb_df['CE_WB_OLD'].apply(_get_wb_id_for_entrez)
@@ -547,14 +556,14 @@ def _get_homologene_entrez_ensembl_map(homologene_entrez_list_hs):
 
     The first portion is obtained by using gene info table from
     <ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Mammalia/Homo_sapiens.gene_info.gz>,
-    downloaded on 2017-01-28. The ones that could not be found here are further found by 
+    downloaded on 2017-01-28. The ones that could not be found here are further found by
     scraping the ID history pages.
 
     Returns:
         pandas.DataFrame: DataFrame containing mapping information between Entrez and Ensembl IDs.
     """
     entrez_ensg_df = pd.read_csv('../data/entrez/Homo_sapiens.gene_info.gz', sep='\t',
-                                 header=0, usecols=[1,5], names=["HS_ENTREZ", "HS_ENSG"])
+                                 header=0, usecols=[1, 5], names=["HS_ENTREZ", "HS_ENSG"])
 
     # Pick out WB ID entries and separate with commas
     entrez_ensg_df['HS_ENSG'] = entrez_ensg_df['HS_ENSG'].apply(_get_ensg_id_for_entrez)
@@ -597,41 +606,41 @@ def get_wormbase_table():
         pandas.DataFrame: DataFrame containing mapping information between WB IDs and common names.
     """
     wb_df = pd.read_csv("../data/wormbase/c_elegans.PRJNA13758.WS255.geneIDs.txt.gz", sep=',',
-                        compression='gzip', header=None, usecols=[1,2],
+                        compression='gzip', header=None, usecols=[1, 2],
                         names=["CE_WB_CURRENT", "COMMON_NAME"])
     return wb_df
 
 if __name__ == "__main__":
     # Process the orthologs
     print('\nProcessing the orthologs...')
-    orthomcl = get_orthoMCL()
-    oma = get_oma()
-    compara = get_compara()
-    inparanoid = get_inparanoid()
-    orthoinspector = get_orthoinspector(preprocessed = True, uniprot_map_built = False)
-    homologene = get_homologene(preprocessed=False)
+    ORTHOMCL = get_orthomcl()
+    OMA = get_oma()
+    COMPARA = get_compara()
+    INPARANOID = get_inparanoid()
+    ORTHOINSPECTOR = get_orthoinspector(preprocessed=True, uniprot_map_built=False)
+    HOMOLOGENE = get_homologene(preprocessed=False)
 
     # Write to CSV
     print('\nWriting to CSV...')
-    orthomcl.to_csv('../results/orthomcl.csv', index=False)
-    oma.to_csv('../results/oma.csv', index=False)
-    compara.to_csv('../results/compara.csv', index=False)
-    inparanoid.to_csv('../results/inparanoid.csv', index=False)
-    orthoinspector.to_csv('../results/orthoinspector.csv', index=False)
-    homologene.to_csv('../results/homologene.csv', index=False)
+    ORTHOMCL.to_csv('../results/orthomcl.csv', index=False)
+    OMA.to_csv('../results/oma.csv', index=False)
+    COMPARA.to_csv('../results/compara.csv', index=False)
+    INPARANOID.to_csv('../results/inparanoid.csv', index=False)
+    ORTHOINSPECTOR.to_csv('../results/orthoinspector.csv', index=False)
+    HOMOLOGENE.to_csv('../results/homologene.csv', index=False)
     print('Done!')
 
     # Connect to database
     print('\nConnecting to database...')
-    engine = create_engine('mysql://root:@localhost/ortholist')
+    ENGINE = create_engine('mysql://root:@localhost/ortholist')
 
     # Write to database
     print('Writing to database \'ortholist\'...')
-    orthomcl.to_sql(name='orthomcl', con=engine, if_exists='replace', index=False)
-    oma.to_sql(name='oma', con=engine, if_exists='replace', index=False)
-    compara.to_sql(name='compara', con=engine, if_exists='replace', index=False)
-    inparanoid.to_sql(name='inparanoid', con=engine, if_exists='replace', index=False)
-    orthoinspector.to_sql(name='orthoinspector', con=engine, if_exists='replace', index=False)
-    homologene.to_sql(name='homologene', con=engine, if_exists='replace', index=False)
-    get_wormbase_table().to_sql(name='wormbase', con=engine, if_exists='replace', index=False)
+    ORTHOMCL.to_sql(name='orthomcl', con=ENGINE, if_exists='replace', index=False)
+    OMA.to_sql(name='oma', con=ENGINE, if_exists='replace', index=False)
+    COMPARA.to_sql(name='compara', con=ENGINE, if_exists='replace', index=False)
+    INPARANOID.to_sql(name='inparanoid', con=ENGINE, if_exists='replace', index=False)
+    ORTHOINSPECTOR.to_sql(name='orthoinspector', con=ENGINE, if_exists='replace', index=False)
+    HOMOLOGENE.to_sql(name='homologene', con=ENGINE, if_exists='replace', index=False)
+    get_wormbase_table().to_sql(name='wormbase', con=ENGINE, if_exists='replace', index=False)
     print('Done!')
