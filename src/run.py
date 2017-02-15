@@ -17,10 +17,16 @@ from sqlalchemy import create_engine
 # OrthoMCL
 ####################
 def get_orthomcl():
-    """OrthoMCL ortholog table.
+    """Returns the OrthoMCL ortholog table between C. elegans and H. sapiens.
 
-    Version 5 (2015-07-23)
+    The C. elegans side is provided as ENSP IDs instead of ENSG IDs, so the IDs are mapped using
+    Wormbase release 56, which OrthoMCL version 5 uses.
+
+    Version 5 (2015-07-23):
     http://orthomcl.org/common/downloads/release-5/pairs/orthologs.txt.gz
+
+    Returns:
+        pandas.DataFrame: Data frame containing the orthologs from OrthoMCL
     """
 
     # Read the ortholog list
@@ -42,11 +48,14 @@ def get_orthomcl():
 def _get_ensembl_56_ensp_ensg_map():
     """Return ENSP to ENSG mapping from Ensembl release 56
 
+    Because there convinient direct mapping from ENSP to ENSG, various tables are used to
+    map between the different stages.
+
     Data from
     ftp://ftp.ensembl.org/pub/release-56/mysql/homo_sapiens_core_56_37a/
 
     The schema is described in
-    ../data/ensembl/56/homo_sapiens_core_56_37a.sql.gz
+        ../data/ensembl/56/homo_sapiens_core_56_37a.sql.gz
     """
     ensp_ensg_df = pd.read_csv("../data/ensembl/56/translation_stable_id.txt.gz", sep='\t',
                                compression='gzip', header=None, usecols=[0, 1],
@@ -73,10 +82,13 @@ def _get_ensembl_56_ensp_ensg_map():
 # OMA
 ####################
 def get_oma():
-    """OMA
+    """Returns the OMA ortholog table between C. elegans and H. sapiens.
 
-    Data from (retrieved 2016-10-19)
+    OMA, May 2016 release
     http://omabrowser.org/cgi-bin/gateway.pl?f=PairwiseOrthologs&p1=CAEEL&p2=HUMAN&p3=EnsemblGene
+
+    Returns:
+        pandas.DataFrame: DataFrame containing the orthologs from OMA
     """
 
     # Read the ortholog list
@@ -97,13 +109,16 @@ def get_oma():
     return oma
 
 def _get_oma_wb_map():
-    """Return OMA to WB ID mapping
+    """Returns OMA to WB ID mapping
 
     Wormpep data from Wormbase:
     ftp://ftp.wormbase.org/pub/wormbase/species/c_elegans/sequence/protein/c_elegans.WS235.wormpep_package.tar.gz
 
     OMA to Wormpep data from OMA:
     http://omabrowser.org/All/oma-wormbase.txt.gz
+
+    Returns:
+        pandas.DataFrame: Mapping data from OMA ID to Wormbase ID
     """
     wp_to_wb = {}
     with open('../data/wormbase/wormpep.table235') as file:
@@ -130,10 +145,13 @@ def _get_oma_wb_map():
 # Ensembl Compara
 ####################
 def get_compara():
-    """Ensembl Compara
+    """Returns the Ensembl Compara ortholog table between C. elegans and H. sapiens.
 
-    Data from Ensembl 87 BioMart
+    Ensembl 87 BioMart (2016-12)
     http://dec2016.archive.ensembl.org/biomart/martview
+
+    Returns:
+        pandas.DataFrame: DataFrame containing the orthologs from Ensembl Compara
     """
 
     # Read the ortholog list
@@ -153,10 +171,13 @@ def get_compara():
 # InParanoid
 ####################
 def get_inparanoid(uniprot_map_built=True):
-    """InParanoid
+    """Returns the InParanoid ortholog table between C. elegans and H. sapiens.
 
-    Data from InParanoid 8.0
+    InParanoid 8.0 (2013-12)
     http://inparanoid.sbc.su.se/download/8.0_current/Orthologs_other_formats/C.elegans/InParanoid.C.elegans-H.sapiens.tgz
+
+    Returns:
+        pandas.DataFrame: DataFrame containing the orthologs from InParanoid
     """
     ortholog_file = '../data/inparanoid/orthologs.tsv'
 
@@ -425,11 +446,12 @@ def _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built=True):
 
 ####################
 # Homologene
-# Build 68, 2014-05-06
-# <ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data>
 ####################
 def get_homologene(preprocessed=True):
     """Homologene
+
+    Build 68, 2014-05-06
+    ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data
     """
     ortholog_file = '../data/homologene/orthologs.tsv'
 
