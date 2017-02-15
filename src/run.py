@@ -652,6 +652,18 @@ if __name__ == "__main__":
     HOMOLOGENE.to_csv('../results/homologene.csv', index=False)
     print('Done!')
 
+    # Write to Excel
+    print("\nWriting to Excel...")
+    WRITER = pd.ExcelWriter('../results/results.xlsx')
+    ORTHOMCL.to_excel(WRITER, 'orthomcl', index=False)
+    OMA.to_excel(WRITER, 'oma', index=False)
+    COMPARA.to_excel(WRITER, 'compara', index=False)
+    INPARANOID.to_excel(WRITER, 'inparanoid', index=False)
+    ORTHOINSPECTOR.to_excel(WRITER, 'orthoinspector', index=False)
+    HOMOLOGENE.to_excel(WRITER, 'homologene', index=False)
+    WRITER.save()
+    print('Done!')
+
     # Connect to database
     print('\nConnecting to database...')
     ENGINE = create_engine('mysql://root:@localhost/ortholist')
