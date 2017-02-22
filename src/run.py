@@ -12,6 +12,7 @@ from helper.misc import generate_combinations, tidy_split
 from helper.wb_map import get_ce_wb_updated
 
 from sqlalchemy import create_engine
+from sqlalchemy_utils import database_exists, create_database
 
 ####################
 # OrthoMCL
@@ -30,7 +31,7 @@ def get_orthomcl():
     """
 
     # Read the ortholog list
-    orthomcl = pd.read_csv('../data/orthomcl/orthologs.csv', names=["CE_WB_OLD", "HS_ENSP"])
+    orthomcl = pd.read_csv('../data/orthomcl/orthologs.csv', names=['CE_WB_OLD', "HS_ENSP"])
 
     # Convert ENSP to ENSG
     orthomcl = pd.merge(orthomcl, _get_ensembl_56_ensp_ensg_map(),
@@ -69,7 +70,7 @@ def _get_ensembl_56_ensp_ensg_map():
                                      names=["transcript_id", "gene_id"])
     gene_id_to_gene = pd.read_csv("../data/ensembl/56/gene_stable_id.txt.gz", sep='\t',
                                   compression='gzip', header=None, usecols=[0, 1],
-                                  names=["gene_id", "HS_ENSG"])
+                                  names=["gene_id", 'HS_ENSG'])
 
     ensp_ensg_df = ensp_ensg_df.set_index("translation_id") \
         .join(translation_to_transcript.set_index("translation_id")) \
@@ -93,7 +94,7 @@ def get_oma():
 
     # Read the ortholog list
     oma = pd.read_csv('../data/oma/orthologs.tsv', sep='\t', header=None, usecols=[0, 1],
-                      names=["CE_WORMPEP", "HS_ENSG"])
+                      names=["CE_WORMPEP", 'HS_ENSG'])
 
     # Convert OMA IDs to Wormbase
     oma = pd.merge(oma, _get_oma_wb_map(),
@@ -156,7 +157,7 @@ def get_compara():
 
     # Read the ortholog list
     compara = pd.read_csv('../data/ensembl/87/orthologs.tsv', sep='\t', header=0, usecols=[0, 2],
-                          names=["CE_WB_OLD", "HS_ENSG"])
+                          names=['CE_WB_OLD', 'HS_ENSG'])
 
     # Deal with WB ID changes
     compara = pd.concat([compara, get_ce_wb_updated(compara)], axis=1) \
@@ -464,7 +465,7 @@ def get_homologene(preprocessed=True):
 
     # Read the ortholog list
     homologene = pd.read_csv(ortholog_file, sep='\t', header=0, usecols=[0, 1],
-                             names=["CE_ENTREZ", "HS_ENTREZ"])
+                             names=['CE_ENTREZ', 'HS_ENTREZ'])
 
     homologene_entrez_list_ce = homologene['CE_ENTREZ'].drop_duplicates().sort_values()
     homologene_entrez_list_ce.to_csv('../data/homologene/entrez_list_ce.csv', index=False)
@@ -551,7 +552,7 @@ def _get_homologene_entrez_wb_map(homologene_entrez_list_ce):
         pandas.DataFrame: DataFrame containing mapping information between Entrez and WB IDs.
     """
     entrez_wb_df = pd.read_csv('../data/entrez/Caenorhabditis_elegans.gene_info.gz', sep='\t',
-                               header=0, usecols=[1, 5], names=["CE_ENTREZ", "CE_WB_OLD"])
+                               header=0, usecols=[1, 5], names=['CE_ENTREZ', 'CE_WB_OLD'])
 
     # Pick out WB ID entries and separate with commas
     entrez_wb_df['CE_WB_OLD'] = entrez_wb_df['CE_WB_OLD'].apply(_get_wb_id_for_entrez)
@@ -585,7 +586,7 @@ def _get_homologene_entrez_ensembl_map(homologene_entrez_list_hs):
         pandas.DataFrame: DataFrame containing mapping information between Entrez and Ensembl IDs.
     """
     entrez_ensg_df = pd.read_csv('../data/entrez/Homo_sapiens.gene_info.gz', sep='\t',
-                                 header=0, usecols=[1, 5], names=["HS_ENTREZ", "HS_ENSG"])
+                                 header=0, usecols=[1, 5], names=['HS_ENTREZ', 'HS_ENSG'])
 
     # Pick out WB ID entries and separate with commas
     entrez_ensg_df['HS_ENSG'] = entrez_ensg_df['HS_ENSG'].apply(_get_ensg_id_for_entrez)
@@ -624,12 +625,34 @@ def _get_ensg_id_for_entrez(entry):
 def get_wormbase_table():
     """Table for WormBase ID to common name mapping.
 
+    WormBase gene ID table (2016-09-15) from:
+    <ftp://ftp.wormbase.org/pub/wormbase/releases/WS255/species/c_elegans/PRJNA13758/annotation/c_elegans.PRJNA13758.WS255.geneIDs.txt.gz>
+
+    This table contains WormBase IDs, common names, as well as locus ID information.
+    Ahringer RNAi clone locations (WS239) are read, updated, and left-joined
+    with the WormBase table to provide non-ortholog C. elegans information.
+
     Returns:
-        pandas.DataFrame: DataFrame containing mapping information between WB IDs and common names.
+        pandas.DataFrame: DataFrame containing mapping information between WB IDs, common names.
+            locus IDs, and Ahringer RNAi clone locations.
     """
     wb_df = pd.read_csv("../data/wormbase/c_elegans.PRJNA13758.WS255.geneIDs.txt.gz", sep=',',
-                        compression='gzip', header=None, usecols=[1, 2],
-                        names=["CE_WB_CURRENT", "COMMON_NAME"])
+                        compression='gzip', header=None, usecols=[1, 2, 3],
+                        names=['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID'])
+
+    # Read Ahringer locations, mapped to WS239
+    ahringer_df = pd.read_csv("../data/ahringer/locations_ws239.csv", sep=',',
+                              header=None, usecols=[0,1],
+                              names=["AHRINGER_LOC", 'CE_WB_OLD'])
+
+    # Deal with WB ID changes
+    ahringer_df = pd.concat([ahringer_df, get_ce_wb_updated(ahringer_df)], axis=1) \
+            .sort_values(['CE_WB_CURRENT', 'AHRINGER_LOC']).reset_index(drop=True)
+
+    # Left join using the WormBase gene ID table
+    wb_df = pd.merge(wb_df, ahringer_df, how='left', on='CE_WB_CURRENT')
+    wb_df = wb_df[['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID', 'AHRINGER_LOC']]
+
     return wb_df
 
 if __name__ == "__main__":
@@ -641,6 +664,7 @@ if __name__ == "__main__":
     INPARANOID = get_inparanoid()
     ORTHOINSPECTOR = get_orthoinspector(preprocessed=True, uniprot_map_built=False)
     HOMOLOGENE = get_homologene(preprocessed=False)
+    WORMBASE = get_wormbase_table()
 
     # Write to CSV
     print('\nWriting to CSV...')
@@ -650,6 +674,7 @@ if __name__ == "__main__":
     INPARANOID.to_csv('../results/inparanoid.csv', index=False)
     ORTHOINSPECTOR.to_csv('../results/orthoinspector.csv', index=False)
     HOMOLOGENE.to_csv('../results/homologene.csv', index=False)
+    WORMBASE.to_csv('../results/wormbase.csv', index=False)
     print('Done!')
 
     # Write to Excel
@@ -661,12 +686,15 @@ if __name__ == "__main__":
     INPARANOID.to_excel(WRITER, 'inparanoid', index=False)
     ORTHOINSPECTOR.to_excel(WRITER, 'orthoinspector', index=False)
     HOMOLOGENE.to_excel(WRITER, 'homologene', index=False)
+    WORMBASE.to_excel(WRITER, 'wormbase', index=False)
     WRITER.save()
     print('Done!')
 
     # Connect to database
     print('\nConnecting to database...')
     ENGINE = create_engine('mysql://root:@localhost/ortholist')
+    if not database_exists(ENGINE.url):
+        create_database(ENGINE.url)
 
     # Write to database
     print('Writing to database \'ortholist\'...')
@@ -676,5 +704,5 @@ if __name__ == "__main__":
     INPARANOID.to_sql(name='inparanoid', con=ENGINE, if_exists='replace', index=False)
     ORTHOINSPECTOR.to_sql(name='orthoinspector', con=ENGINE, if_exists='replace', index=False)
     HOMOLOGENE.to_sql(name='homologene', con=ENGINE, if_exists='replace', index=False)
-    get_wormbase_table().to_sql(name='wormbase', con=ENGINE, if_exists='replace', index=False)
+    WORMBASE.to_sql(name='wormbase', con=ENGINE, if_exists='replace', index=False)
     print('Done!')
