@@ -31,11 +31,11 @@ def get_orthomcl():
     """
 
     # Read the ortholog list
-    orthomcl = pd.read_csv('../data/orthomcl/orthologs.csv', names=['CE_WB_OLD', "HS_ENSP"])
+    orthomcl = pd.read_csv('../data/orthomcl/orthologs.csv', names=['CE_WB_OLD', 'HS_ENSP'])
 
     # Convert ENSP to ENSG
     orthomcl = pd.merge(orthomcl, _get_ensembl_56_ensp_ensg_map(),
-                        left_on="HS_ENSP", right_index=True)
+                        left_on='HS_ENSP', right_index=True)
 
     # Deal with WB ID changes
     orthomcl = pd.concat([orthomcl, get_ce_wb_updated(orthomcl)], axis=1) \
@@ -94,11 +94,11 @@ def get_oma():
 
     # Read the ortholog list
     oma = pd.read_csv('../data/oma/orthologs.tsv', sep='\t', header=None, usecols=[0, 1],
-                      names=["CE_WORMPEP", 'HS_ENSG'])
+                      names=['CE_WORMPEP', 'HS_ENSG'])
 
     # Convert OMA IDs to Wormbase
     oma = pd.merge(oma, _get_oma_wb_map(),
-                   left_on="CE_WORMPEP", right_index=True).drop('CE_WORMPEP', axis=1)
+                   left_on='CE_WORMPEP', right_index=True).drop('CE_WORMPEP', axis=1)
 
     # Deal with WB ID changes
     oma = pd.concat([oma, get_ce_wb_updated(oma)], axis=1) \
@@ -187,7 +187,7 @@ def get_inparanoid(uniprot_map_built=True):
 
     # Read the ortholog list
     inparanoid = pd.read_csv(ortholog_file, sep='\t', header=0, usecols=[0, 1],
-                             names=["CE_UNIPROT", "HS_UNIPROT"])
+                             names=['CE_UNIPROT', 'HS_UNIPROT'])
 
     if not uniprot_map_built:
         # Generate lists of UniProt genes to
@@ -340,6 +340,9 @@ def get_orthoinspector(preprocessed=True, uniprot_map_built=True):
     """OrthoInspector
 
     http://lbgi.fr/orthoinspector/dbquery_qfo/data/CSV/62.csv.gz
+
+    Returns:
+        pandas.DataFrame: DataFrame containing the orthologs from OrthoInspector
     """
     if not preprocessed:
         print('Downloading and preprocessing OrthoInspector orthologs...\n')
@@ -347,7 +350,7 @@ def get_orthoinspector(preprocessed=True, uniprot_map_built=True):
 
     # Read the orthologs
     orthoinspector = pd.read_csv('../data/orthoinspector/orthologs.csv', sep=',',
-                                 usecols=[0, 1], names=["CE_UNIPROT", "HS_UNIPROT"])
+                                 usecols=[0, 1], names=['CE_UNIPROT', 'HS_UNIPROT'])
 
     if not uniprot_map_built:
         orthoinspector_uniprot_list_ce = orthoinspector['CE_UNIPROT'].drop_duplicates().sort_values()
@@ -453,6 +456,9 @@ def get_homologene(preprocessed=True):
 
     Build 68, 2014-05-06
     ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data
+
+    Returns:
+        pandas.DataFrame: DataFrame containing the orthologs from Homologene
     """
     ortholog_file = '../data/homologene/orthologs.tsv'
 
@@ -499,7 +505,7 @@ def _make_homologene_table(ortholog_file):
     Extracts the C. elegans and H. sapiens orthologs from the raw table.
     Because the orthologs are provided as groupings, combinations are generated
     using generate_combinations(), which uses itertools.product(). As it is, it
-    current writes to a file first, but it for the future, it could be worth
+    current writes to a file first, but it for the future, it would be a good idea
     directly returning a DataFrame here.
 
     Args:
@@ -609,6 +615,7 @@ def _get_homologene_entrez_ensembl_map(homologene_entrez_list_hs):
     return entrez_ensg_df
 
 def _get_wb_id_for_entrez(entry):
+    """Finds all the WB ID entries and returns them separated with commas."""
     id_set = re.findall(r'WormBase:(WBGene[0-9]{8})', entry)
     if len(id_set):
         return ','.join(id_set)
@@ -616,12 +623,16 @@ def _get_wb_id_for_entrez(entry):
         return None
 
 def _get_ensg_id_for_entrez(entry):
+    """Finds all the ENSG entries and returns them separated with commas."""
     id_set = re.findall(r'ENSG[0-9]{11}', entry)
     if len(id_set):
         return ','.join(id_set)
     else:
         return None
 
+####################
+# WormBase
+####################
 def get_wormbase_table():
     """Table for WormBase ID to common name mapping.
 
@@ -690,7 +701,7 @@ if __name__ == "__main__":
     WRITER.save()
     print('Done!')
 
-    # Connect to database
+    # Connect to database, create if needed
     print('\nConnecting to database...')
     ENGINE = create_engine('mysql://root:@localhost/ortholist')
     if not database_exists(ENGINE.url):
