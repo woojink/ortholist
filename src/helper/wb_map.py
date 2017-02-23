@@ -13,14 +13,14 @@ import pandas as pd
 
 # Read genes from Wormbase WS255
 wb_ws255 = set()
-with gzip.open('../data/wormbase/c_elegans.PRJNA13758.WS255.geneIDs.txt.gz', 'rt') as f:
+with gzip.open('data/wormbase/c_elegans.PRJNA13758.WS255.geneIDs.txt.gz', 'rt') as f:
     reader = csv.reader(f, delimiter=",")
     for row in reader:
         wb_ws255.add(row[1])
 
 # Read Dan's mapping for changed IDs
 wb_old_to_current_map = {}
-with open('../data/wormbase/WB_changes.csv') as f:
+with open('data/wormbase/WB_changes.csv') as f:
     reader = csv.reader(f, delimiter=",")
     next(reader)
     for old, current, comment in reader:
