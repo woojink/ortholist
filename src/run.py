@@ -636,8 +636,9 @@ def _get_ensg_id_for_entrez(entry):
 def get_wormbase_table():
     """Table for WormBase ID to common name mapping.
 
-    WormBase gene ID table (2016-09-15) from:
+    WormBase gene ID and InterPro domain tables (2016-09-15) from:
     <ftp://ftp.wormbase.org/pub/wormbase/releases/WS255/species/c_elegans/PRJNA13758/annotation/c_elegans.PRJNA13758.WS255.geneIDs.txt.gz>
+    <ftp://ftp.wormbase.org/pub/wormbase/releases/WS255/species/c_elegans/PRJNA13758/annotation/c_elegans.PRJNA13758.WS255.protein_domains.tsv>
 
     This table contains WormBase IDs, common names, as well as locus ID information.
     Ahringer RNAi clone locations (WS239) are read, updated, and left-joined
@@ -660,9 +661,25 @@ def get_wormbase_table():
     ahringer_df = pd.concat([ahringer_df, get_ce_wb_updated(ahringer_df)], axis=1) \
             .sort_values(['CE_WB_CURRENT', 'AHRINGER_LOC']).reset_index(drop=True)
 
+    # Read InterPro domains
+    interpro_tuples = []
+    with gzip.open('data/wormbase/c_elegans.PRJNA13758.WS255.protein_domains.tsv.gz', 'rt') as file:
+        reader = csv.reader(file, delimiter="\t")
+        for line in reader:
+            wb_id = line[0]
+            domains = line[3:]
+
+            # InterPro domains are separated by '|' for each WormBase ID
+            if len(domains):
+                interpro_tuples.append((wb_id, "|".join(domains)))
+
+    interpro_df = pd.DataFrame(interpro_tuples, columns=['CE_WB_CURRENT', 'INTERPRO_DOM'])
+
     # Left join using the WormBase gene ID table
     wb_df = pd.merge(wb_df, ahringer_df, how='left', on='CE_WB_CURRENT')
-    wb_df = wb_df[['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID', 'AHRINGER_LOC']]
+    wb_df = pd.merge(wb_df, interpro_df, how='left', on='CE_WB_CURRENT')
+
+    wb_df = wb_df[['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID', 'AHRINGER_LOC', 'INTERPRO_DOM']]
 
     return wb_df
 
