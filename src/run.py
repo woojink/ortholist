@@ -705,6 +705,24 @@ if __name__ == "__main__":
     WORMBASE.to_csv('results/wormbase.csv', index=False)
     print('Done!')
 
+    # Write a consolidated CSV
+    DATABASES = [
+	    ("ORTHOMCL", ORTHOMCL),
+	    ("OMA", OMA),
+	    ("COMPARA", COMPARA),
+	    ("INPARANOID", INPARANOID),
+	    ("ORTHOINSPECTOR", ORTHOINSPECTOR),
+	    ("HOMOLOGENE", HOMOLOGENE)
+    ]
+    df = WORMBASE.set_index('CE_WB_CURRENT')
+    for name, db in DATABASES:
+        db = db[['CE_WB_CURRENT', 'HS_ENSG']].dropna(axis=0)
+        grouped_df = db.groupby('CE_WB_CURRENT').apply(lambda x: ','.join(sorted(x.HS_ENSG)))
+        grouped_df.name = name
+        df = df.join(grouped_df)
+    df.to_csv('results/all.csv')
+    print('Done!')
+
     # Write to Excel
     print("\nWriting to Excel...")
     WRITER = pd.ExcelWriter('results/results.xlsx')
