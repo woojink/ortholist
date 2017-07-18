@@ -1,6 +1,6 @@
-# Ortholist 2.0
+# Ortholist 2
 ## Overview
-This project updates Ortholist ([1.0 here](http://www.greenwaldlab.org/ortholist/)) with results from both additional ortholog prediction programs and updated releases of previously included programs.
+This project updates Ortholist ([version 1 here](http://www.greenwaldlab.org/ortholist/)) with results from both additional ortholog prediction programs and updated releases of previously included programs.
 
 ## Databases used
 * Ensembl Compara (Release 87, 2016-12)
