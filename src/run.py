@@ -20,8 +20,8 @@ from sqlalchemy_utils import database_exists, create_database
 def get_orthomcl():
     """Returns the OrthoMCL ortholog table between C. elegans and H. sapiens.
 
-    The C. elegans side is provided as ENSP IDs instead of ENSG IDs, so the IDs are mapped using
-    Wormbase release 56, which OrthoMCL version 5 uses.
+    The H. sapiens side is provided as ENSP IDs instead of ENSG IDs, so the IDs are mapped using
+    Ensembl release 56, which OrthoMCL version 5 uses.
 
     Version 5 (2015-07-23):
     http://orthomcl.org/common/downloads/release-5/pairs/orthologs.txt.gz
