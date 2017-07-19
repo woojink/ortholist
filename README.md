@@ -59,3 +59,21 @@ Release 87 (2016-12) of Ensembl is used for Ortholist.
 Release 8.0 (2013-12) of InParanoid is used for Ortholist.
 
 1. Raw SQL table (`sqltable.C.elegans-H.sapiens`) for the orthologs is downloaded from [this link](http://inparanoid.sbc.su.se/download/8.0_current/Orthologs_other_formats/C.elegans/InParanoid.C.elegans-H.sapiens.tgz). Both worm and human genes are provided as UniProt IDs. The orthologs are provided as groupings, so combinations are generated using [`generate_combinations()`](https://github.com/woojink/ortholist/blob/master/src/helper/misc.py#L41) under `helper.misc`. We first generate a more tractable ortholog file `orthologs.tsv` under the InParanoid data folder using the above method.
+2. For the worm genes:
+    * The majority of the UniProt IDs are mapped using the ID mapping tool from UniProt available [here](http://www.uniprot.org/uploadlists/). As release 8.0 was released in 2013-12, there are many IDs no longer mappable.
+    * For the rest, we look at the UniProt ID history pages to determine the last known entry (e.g. [`http://www.uniprot.org/uniprot/A4UVJ9?version=*`](http://www.uniprot.org/uniprot/A4UVJ9?version=*) shows 47 is the latest for `A4UVJ9`)
+    * Then using that latest entry, we access the actual entry page to scrape the last known WormBase ID for the particular UniProt ID (e.g. [`http://www.uniprot.org/uniprot/A4UVJ9.txt?version=47`](http://www.uniprot.org/uniprot/A4UVJ9.txt?version=47) shows `WBGene00019439` is the last known correspondent with `A4UVJ9`)
+3. For the human genes:
+    * As with the worm genes, the majority of the UniProt IDs are mapped using the [ID mapping tool](http://www.uniprot.org/uploadlists/)
+    * The ones that could not be found at this point are then searched through the [BioMart tool for Ensembl 74](http://dec2013.archive.ensembl.org/biomart/martview/) (2013-12), which is the closest release to InParanoid 8.0 (also 2013-12). Both SwissPort and TrEMBL entries are looked at.
+    * At this point, the remaining 135 IDs are scraped through the history pages as with the worm genes previously, yield 9 more entries.
+4. Lastly, the WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
+
+### OrthoInspector
+For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) was used.
+
+1. The raw worm orthologs are available on [this `gzip`-ed CSV file](http://lbgi.fr/orthoinspector/dbquery_qfo/data/CSV/62.csv.gz) (warning: large 1.22 GB file). Each line in this file represents an ortholog. Only the UniProt IDs are extracted from each line, then filtered for only lines containing human orthologs (see [`preprocess.sh`](https://github.com/woojink/ortholist/blob/master/data/orthoinspector/preprocess.sh) for more details)
+2. The rest of the process for OrthoInspector is identical, where
+    * Worm genes were first mapped through UniProt's ID mapping tool, then scraped through history pages
+    * Human genes were also first mapped through UniProt's ID mapping tool, then the [BioMart tool for Ensembl 74](http://dec2013.archive.ensembl.org/biomart/martview/) (2013-12), which is the closest release to 2013-04, then lastly through scraping. 11 of 13 remaining ID correspondents are found after scraping.
+3. Lastly, the WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
