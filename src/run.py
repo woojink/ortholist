@@ -706,6 +706,7 @@ if __name__ == "__main__":
     print('Done!')
 
     # Write a consolidated CSV
+    print('\nWriting a consolidated CSV...')
     DATABASES = [
 	    ("ORTHOMCL", ORTHOMCL),
 	    ("OMA", OMA),
