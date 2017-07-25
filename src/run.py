@@ -512,7 +512,7 @@ def _make_homologene_table(ortholog_file):
         ortholog_file (str): Location where the ortholog table will be written
     """
     ortholog_list = []
-    with open('data/homologene/homologene.txt') as file:
+    with open('data/homologene/homologene.tsv') as file:
         reader = csv.reader(file, delimiter='\t')
 
         current_group = {'group_id': None, 'cele': [], 'hsap': []}
