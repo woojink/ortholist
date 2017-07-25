@@ -13,12 +13,12 @@ This project updates Ortholist ([version 1 here](http://www.greenwaldlab.org/ort
 ## Instructions
 ### Pre-requisites
 This project makes use of Python 3 and MySQL. If you're on OS X / macOS, you can get these by first installing [Homebrew](https://brew.sh/) by putting the following on your Terminal:
-```
+```bash
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
 
 Then running
-```
+```bash
 brew install python3
 brew install mysql
 ```
