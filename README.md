@@ -42,6 +42,17 @@ Version 5 (2015-07-23) of OrthoMCL is obtained [here](http://orthomcl.org/common
 3. Human genes are provided as ENSP IDs, which needs to be converted to ENSG IDs for the purpose of this project. Using four tables from Ensembl (`translation_stable_id.txt.gz`, `translation.txt.gz`, `transcript.txt.gz`, `gene_stable_id.txt.gz`), we are able to obtain ENSG ID that correspond to each ENSP ID.
 4. WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
 
+#### Statistics
+* Before
+    - Orthologs: 6,124
+    - Unique worm genes: 4,683
+    - Unique human genes: 5,159
+* Genes missing due to `ENSP` to `ENSG` mapping: 0
+* After
+    - Orthologs: 6,124
+    - Unique worm genes: 4,682 (due to merging events)
+    - Unique human genes: 5,159
+
 ### OMA
 May 2016 release of OMA is used.
 
@@ -54,6 +65,15 @@ Release 87 (2016-12) of Ensembl is used for Ortholist.
 
 1. Orthologs are directly obtained from [December 2016 BioMart](http://dec2016.archive.ensembl.org/biomart/martview). Worm genes were obtained as Wormbase IDs and human genes as ENSG IDs.
 2. WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
+
+#### Statistics
+* Before
+    - Orthologs: 27,682
+    - Unique worm genes: 6,285
+    - Unique human genes: 8,297
+* After
+    - Unique worm genes: 6,284 (merging and pseudogene deprecation)
+    - Unique human genes: 8,297
 
 ### InParanoid
 Release 8.0 (2013-12) of InParanoid is used for Ortholist.
