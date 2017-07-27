@@ -122,7 +122,7 @@ def _get_oma_wb_map():
         pandas.DataFrame: Mapping data from OMA ID to Wormbase ID
     """
     wp_to_wb = {}
-    with gzip.open('data/wormbase/wormpep.table235.gz') as file:
+    with gzip.open('data/wormbase/wormpep.table235.gz', 'rt') as file:
         reader = csv.reader(file, delimiter="\t")
         for row in reader:
             wp_to_wb[row[1]] = row[2]
