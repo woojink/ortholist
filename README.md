@@ -50,7 +50,7 @@ Version 5 (2015-07-23) of OrthoMCL is obtained [here](http://orthomcl.org/common
 * Genes missing due to `ENSP` to `ENSG` mapping: 0
 * After
     - Orthologs: 6,124
-    - Unique worm genes: 4,682 (due to merging events)
+    - Unique worm genes: 4,682 (33 merging events)
     - Unique human genes: 5,159
 
 ### OMA
@@ -59,6 +59,17 @@ May 2016 release of OMA is used.
 1. Orthologs are directly obtained from [this endpoint](http://omabrowser.org/cgi-bin/gateway.pl?f=PairwiseOrthologs&p1=CAEEL&p2=HUMAN&p3=EnsemblGene). Each line of this file indicates an ortholog: worm genes are provided as OMA IDs and human genes as ENSG IDs.
 2. OMA IDs for worm genes are first mapped to Wormpep IDs using the provided [map file](http://omabrowser.org/All/oma-wormbase.txt.gz) from OMA. The Wormpep IDs are from WS235 and they are translated to Wormbase IDs using the `wormpep.table235` from Wormbase <`ftp://ftp.wormbase.org/pub/wormbase/species/c_elegans/sequence/protein/c_elegans.WS235.wormpep_package.tar.gz`>.
 3. WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
+
+#### Statistics
+* Before
+    - Orthologs: 5,370
+    - Unique worm genes: 3,885
+    - Unique human genes: 4,559
+* Genes missing due to Wormpep to Wormbase mapping: 0
+* After
+    - Orthologs: 5,368
+    - Unique worm genes: 3,884 (9 merging and 2 pseudogene events)
+    - Unique human genes: 4,559
 
 ### Ensembl Compara
 Release 87 (2016-12) of Ensembl is used for Ortholist.
@@ -72,7 +83,8 @@ Release 87 (2016-12) of Ensembl is used for Ortholist.
     - Unique worm genes: 6,285
     - Unique human genes: 8,297
 * After
-    - Unique worm genes: 6,284 (merging and pseudogene deprecation)
+    - Orthologs: 27,679
+    - Unique worm genes: 6,283 (1 merging, 3 pseudogene events)
     - Unique human genes: 8,297
 
 ### InParanoid
@@ -88,6 +100,21 @@ Release 8.0 (2013-12) of InParanoid is used for Ortholist.
     * The ones that could not be found at this point are then searched through the [BioMart tool for Ensembl 74](http://dec2013.archive.ensembl.org/biomart/martview/) (2013-12), which is the closest release to InParanoid 8.0 (also 2013-12). Both SwissPort and TrEMBL entries are looked at.
     * At this point, the remaining 135 IDs are scraped through the history pages as with the worm genes previously, yield 9 more entries.
 4. Lastly, the WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
+
+#### Statistics
+* Before
+    - Orthologs: 12,826
+    - Unique worm genes: 5,545
+    - Unique human genes: 8,395
+* Uniprot - Wormbase mapping (all found)
+    - Found through the ID mapping tool: 5,482 of 5,545
+    - Found through scraping history pages: 63 of 5545
+* Uniprot - Ensembl mapping
+    - Found through the ID mapping tool: 8,220 of 8,395
+    - Found through the BioMart tool (SwissProt): 27 of 8,395
+    - Found through the BioMart tool (TrEMBL): 13 of 8,395
+    - Found through scraping history pages: 12 of 8,395
+    - Remaining: 123 of 8,395
 
 ### OrthoInspector
 For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) is used.
