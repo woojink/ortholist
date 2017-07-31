@@ -50,7 +50,7 @@ Version 5 (2015-07-23) of OrthoMCL is obtained [here](http://orthomcl.org/common
 * Genes missing due to `ENSP` to `ENSG` mapping: 0
 * After
     - Orthologs: 6,124
-    - Unique worm genes: 4,682 (33 merging events)
+    - Unique worm genes: 4,682 (33 merged entries)
     - Unique human genes: 5,159
 
 ### OMA
@@ -84,7 +84,7 @@ Release 87 (2016-12) of Ensembl is used for Ortholist.
     - Unique human genes: 8,297
 * After
     - Orthologs: 27,679
-    - Unique worm genes: 6,283 (1 merging, 3 pseudogene events)
+    - Unique worm genes: 6,283 (1 merged, 3 pseudogene entries)
     - Unique human genes: 8,297
 
 ### InParanoid
@@ -106,15 +106,15 @@ Release 8.0 (2013-12) of InParanoid is used for Ortholist.
     - Orthologs: 12,826
     - Unique worm genes: 5,545
     - Unique human genes: 8,395
-* Uniprot - Wormbase mapping (all found)
-    - Found through the ID mapping tool: 5,482 of 5,545
-    - Found through scraping history pages: 63 of 5545
-* Uniprot - Ensembl mapping
-    - Found through the ID mapping tool: 8,220 of 8,395
-    - Found through the BioMart tool (SwissProt): 27 of 8,395
-    - Found through the BioMart tool (TrEMBL): 13 of 8,395
-    - Found through scraping history pages: 12 of 8,395
-    - Remaining: 123 of 8,395
+* Uniprot - Wormbase mapping (5,545 of 5,545)
+    - Found through the ID mapping tool: 5,482
+    - Found through scraping history pages: 63
+* Uniprot - Ensembl mapping (8,272 of 8,272)
+    - Found through the ID mapping tool: 8,220
+    - Found through the BioMart tool (SwissProt): 27
+    - Found through the BioMart tool (TrEMBL): 13
+    - Found through scraping history pages: 12
+    - Remaining: 123
 
 ### OrthoInspector
 For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) is used.
@@ -124,6 +124,28 @@ For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) is used.
     * Worm genes were first mapped through UniProt's ID mapping tool, then scraped through history pages
     * Human genes were also first mapped through UniProt's ID mapping tool, then the [BioMart tool for Ensembl 74](http://dec2013.archive.ensembl.org/biomart/martview/) (2013-12), which is the closest release to 2013-04, then lastly through scraping. 11 of 13 remaining ID correspondents are found after scraping.
 3. Lastly, the WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
+
+#### Statistics
+* Before
+    - Orthologs: 11,122
+    - Unique worm genes: 5,547
+    - Unique human genes: 7,317
+* Uniprot - Wormbase mapping (5,547 of 5,547)
+    - Found through the ID mapping tool: 5,480
+    - Found through scraping history pages: 67
+    - Unique Wormbase IDs: 5,370
+* Uniprot - Ensembl mapping (7,316 of 7,317)
+    - Found through the ID mapping tool: 7,279
+    - Found through the BioMart tool (SwissProt): 15
+    - Found through the BioMart tool (TrEMBL): 10
+    - Found through scraping history pages: 11
+    - Manually matched: 1
+    - Unmatched: 1 (pseudogene)
+    - Unique Ensembl IDs: 7,782
+* After mapping and Wormbase ID update
+    - Orthologs: 12,688
+    - Unique worm genes: 5,364 (11 merged, 10 pseudogene entries)
+    - Unique human genes: 7,782
 
 ### Homologene
 Build 68 (2014-05-06) is used for Homologene
@@ -147,3 +169,23 @@ Build 68 (2014-05-06) is used for Homologene
 
 5. Likewise with human genes, the Entrez gene info table is downloaded from <`ftp://ftp.ncbi.nih.gov/gene/DATA/GENE_INFO/Invertebrates/Caenorhabditis_elegans.gene_info.gz`> (2017-01-28) first. Scraping was attempted, but none of the entries returned an Ensembl ID, so the remaining 6 IDs were manually matched to Ensembl entries using names and other properties. These two methods provided Entrez to Ensembl ID mapping.
 6. Lastly, the WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
+
+#### Statistics
+* Before
+    - Orthologs: 3,811
+    - Unique worm genes: 3,799
+    - Unique human genes: 3,184
+* Entrez - Wormbase mapping (3,799 of 3,799)
+    - Found through Entrez gene info table: 3,765
+    - Found through scraping history pages: 24
+    - Manually matched: 10
+    - Unique Wormbase IDs: 3,785
+* Entrez - Ensembl mapping (3,184 of 3,184)
+    - Found through the ID mapping tool: 3,178
+    - Found through scraping history pages: 0
+    - Manually matched: 6
+    - Unique Ensembl IDs: 3,205
+* After mapping and Wormbase ID update
+    - Orthologs: 3,831
+    - Unique worm genes: 3,779 (2 merged, 6 pseudogene entries)
+    - Unique human genes: 3,205

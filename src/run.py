@@ -281,7 +281,7 @@ def _get_inparanoid_uniprot_wb_map():
                                    usecols=[0, 1], names=['CE_UNIPROT', 'CE_WB_OLD'])
 
     # From scraping the history pages
-    uniprot_wb_map_2 = pd.read_csv('data/inparanoid/uniprot_wb_map_scraped.tsv', sep=',',
+    uniprot_wb_map_2 = pd.read_csv('data/inparanoid/uniprot_wb_map_scraped.csv', sep=',',
                                    usecols=[0, 1], names=['CE_UNIPROT', 'CE_WB_OLD'])
 
     # Combine the two data frames
@@ -289,7 +289,7 @@ def _get_inparanoid_uniprot_wb_map():
 
     return uniprot_wb_map
 
-def _get_inparanoid_uniprot_ensembl_map(uniprot_map_built=True):
+def _get_inparanoid_uniprot_ensembl_map():
     """Returns the UniProt to Ensembl map for InParanoid.
 
     The first portion is obtained by using the ID mapping tool from UniProt available at
@@ -312,16 +312,6 @@ def _get_inparanoid_uniprot_ensembl_map(uniprot_map_built=True):
     biomart_df_2 = pd.read_csv('data/inparanoid/uniprot_ensembl_map_trembl.tsv',
                                sep='\t', header=0, names=['HS_ENSG', 'HS_UNIPROT'])
     biomart_df = pd.concat([biomart_df_1, biomart_df_2], axis=0).drop_duplicates()
-
-    if not uniprot_map_built:
-        # Compare the "not found" list from UniProt with the BioMart set generated above
-        # (135 are still missing), export the difference
-        not_found_set = set(pd.read_csv('data/inparanoid/uniprot_ensembl_map_not_found.tsv',
-                                        sep='\t', header=0, names=['HS_UNIPROT'])['HS_UNIPROT'])
-        biomart_set = set(biomart_df['HS_UNIPROT'])
-
-        pd.Series(list(not_found_set.difference(biomart_set))).sort_values()\
-            .to_csv('data/inparanoid/uniprot_ensembl_map_to_scrape.csv', index=False)
 
     # Get the scraped map
     scraped_df = pd.read_csv('data/inparanoid/uniprot_ensembl_map_scraped.csv',
@@ -356,12 +346,10 @@ def get_orthoinspector(preprocessed=True, uniprot_map_built=True):
         orthoinspector_uniprot_list_ce = orthoinspector['CE_UNIPROT'].drop_duplicates().sort_values()
         orthoinspector_uniprot_list_ce. \
             to_csv('data/orthoinspector/uniprot_list_ce.csv', index=False)
-        print("Number of unique worm UniProt IDs: {}".format(len(orthoinspector_uniprot_list_ce)))
 
         orthoinspector_uniprot_list_hs = orthoinspector['HS_UNIPROT'].drop_duplicates().sort_values()
         orthoinspector_uniprot_list_hs \
             .to_csv('data/orthoinspector/uniprot_list_hs.csv', index=False)
-        print("Number of unique human UniProt IDs: {}".format(len(orthoinspector_uniprot_list_hs)))
 
     # Convert C.elegans UniProt to WB ID
     orthoinspector = pd.merge(orthoinspector, _get_orthoinspector_uniprot_wb_map(),
@@ -369,7 +357,7 @@ def get_orthoinspector(preprocessed=True, uniprot_map_built=True):
 
     # Convert H. sapiens Uniprot to WB ID
     orthoinspector = pd.merge(orthoinspector,
-                              _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built),
+                              _get_orthoinspector_uniprot_ensembl_map(),
                               how='left', on='HS_UNIPROT')
 
     # Deal with WB ID changes
@@ -404,7 +392,7 @@ def _get_orthoinspector_uniprot_wb_map():
 
     return uniprot_wb_df
 
-def _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built=True):
+def _get_orthoinspector_uniprot_ensembl_map():
     """Returns the UniProt to Ensembl map for OrthoInspector.
 
     The first portion is obtained by using the ID mapping tool from UniProt available at
@@ -427,16 +415,6 @@ def _get_orthoinspector_uniprot_ensembl_map(uniprot_map_built=True):
     biomart_df_2 = pd.read_csv('data/orthoinspector/uniprot_ensembl_map_trembl.tsv',
                                sep='\t', header=0, names=['HS_ENSG', 'HS_UNIPROT'])
     biomart_df = pd.concat([biomart_df_1, biomart_df_2], axis=0).drop_duplicates()
-
-    if not uniprot_map_built:
-        # Compare the "not found" list from UniProt with the BioMart set generated above
-        # (13 are still missing), export the difference
-        not_found_set = set(pd.read_csv('data/orthoinspector/uniprot_ensembl_map_not_found.tsv',
-                                        sep='\t', header=0, names=['HS_UNIPROT'])['HS_UNIPROT'])
-        biomart_set = set(biomart_df['HS_UNIPROT'])
-
-        pd.Series(list(not_found_set.difference(biomart_set))).sort_values() \
-            .to_csv('data/orthoinspector/uniprot_ensembl_map_to_scrape.csv', index=False)
 
     # Get the scraped map
     scraped_df = pd.read_csv('data/orthoinspector/uniprot_ensembl_map_scraped.csv',
@@ -475,18 +453,16 @@ def get_homologene(preprocessed=True):
 
     homologene_entrez_list_ce = homologene['CE_ENTREZ'].drop_duplicates().sort_values()
     homologene_entrez_list_ce.to_csv('data/homologene/entrez_list_ce.csv', index=False)
-    print("Number of unique worm Entrez IDs: {}".format(len(homologene_entrez_list_ce)))
 
     homologene_entrez_list_hs = homologene['HS_ENTREZ'].drop_duplicates().sort_values()
     homologene_entrez_list_hs.to_csv('data/homologene/entrez_list_hs.csv', index=False)
-    print("Number of unique human Entrez IDs: {}".format(len(homologene_entrez_list_hs)))
 
     # Convert C.elegans Entrez to WB ID
-    homologene = pd.merge(homologene, _get_homologene_entrez_wb_map(homologene_entrez_list_ce),
+    homologene = pd.merge(homologene, _get_homologene_entrez_wb_map(),
                           how='left', on='CE_ENTREZ')
 
     # Convert H. Sapiens Entrez to WB ID
-    homologene = pd.merge(homologene, _get_homologene_entrez_ensembl_map(homologene_entrez_list_hs),
+    homologene = pd.merge(homologene, _get_homologene_entrez_ensembl_map(),
                           how='left', on='HS_ENTREZ')
 
     # Deal with WB ID changes
@@ -546,7 +522,7 @@ def _make_homologene_table(ortholog_file):
         for row in ortholog_list:
             writer.writerow(row)
 
-def _get_homologene_entrez_wb_map(homologene_entrez_list_ce):
+def _get_homologene_entrez_wb_map():
     """Returns the Entrez to WB ID map for Homologene.
 
     The first portion is obtained by using gene info table from
@@ -566,12 +542,6 @@ def _get_homologene_entrez_wb_map(homologene_entrez_list_ce):
     # Split comma-separated values in one row into multiple rows
     entrez_wb_df = tidy_split(entrez_wb_df, 'CE_WB_OLD', sep=',')
 
-    # Find out the missing ones to scrape
-    to_scrape = set(homologene_entrez_list_ce).difference(set(entrez_wb_df['CE_ENTREZ']))
-    print("Number of genes to scrape: {}".format(len(to_scrape)))
-    pd.Series(list(to_scrape)).sort_values() \
-        .to_csv('data/homologene/entrez_wb_map_to_scrape.csv', index=False)
-
     # Load the rest from the scraped results
     scraped_df = pd.read_csv('data/homologene/entrez_wb_map_scraped.csv', sep=',',
                              names=['CE_ENTREZ', 'CE_WB_OLD'])
@@ -580,7 +550,7 @@ def _get_homologene_entrez_wb_map(homologene_entrez_list_ce):
 
     return entrez_wb_df
 
-def _get_homologene_entrez_ensembl_map(homologene_entrez_list_hs):
+def _get_homologene_entrez_ensembl_map():
     """Returns the Entrez to Ensembl map for Homologene.
 
     The first portion is obtained by using gene info table from
@@ -599,12 +569,6 @@ def _get_homologene_entrez_ensembl_map(homologene_entrez_list_hs):
 
     # Split comma-separated values in one row into multiple rows
     entrez_ensg_df = tidy_split(entrez_ensg_df, 'HS_ENSG', sep=',')
-
-    # Find out the missing ones to scrape
-    to_scrape = set(homologene_entrez_list_hs).difference(set(entrez_ensg_df['HS_ENTREZ']))
-    print("Number of genes to scrape: {}".format(len(to_scrape)))
-    pd.Series(list(to_scrape)).sort_values() \
-        .to_csv('data/homologene/entrez_ensembl_map_to_scrape.csv', index=False)
 
     # Load the rest from the scraped results
     scraped_df = pd.read_csv('data/homologene/entrez_ensembl_map_scraped.csv', sep=',',
@@ -715,13 +679,13 @@ if __name__ == "__main__":
 	    ("ORTHOINSPECTOR", ORTHOINSPECTOR),
 	    ("HOMOLOGENE", HOMOLOGENE)
     ]
-    df = WORMBASE.set_index('CE_WB_CURRENT')
+    consolidated_df = WORMBASE.set_index('CE_WB_CURRENT')
     for name, db in DATABASES:
         db = db[['CE_WB_CURRENT', 'HS_ENSG']].dropna(axis=0)
         grouped_df = db.groupby('CE_WB_CURRENT').apply(lambda x: ','.join(sorted(x.HS_ENSG)))
         grouped_df.name = name
-        df = df.join(grouped_df)
-    df.to_csv('results/all.csv')
+        consolidated_df = consolidated_df.join(grouped_df)
+    consolidated_df.to_csv('results/all.csv')
     print('Done!')
 
     # Write to Excel
@@ -752,4 +716,5 @@ if __name__ == "__main__":
     ORTHOINSPECTOR.to_sql(name='orthoinspector', con=ENGINE, if_exists='replace', index=False)
     HOMOLOGENE.to_sql(name='homologene', con=ENGINE, if_exists='replace', index=False)
     WORMBASE.to_sql(name='wormbase', con=ENGINE, if_exists='replace', index=False)
+    consolidated_df.to_sql(name='consolidated', con=ENGINE, if_exists='replace', index=False)
     print('Done!')
