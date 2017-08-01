@@ -35,23 +35,28 @@ The different databases used for Ortholist were generated at different dates. As
 This WormBase ID updating is done through [`get_ce_wb_updated()`](https://github.com/woojink/ortholist/blob/master/src/helper/wb_map.py#L49) under `helper.wb_map`
 
 ### OrthoMCL
-Version 5 (2015-07-23) of OrthoMCL is obtained [here](http://orthomcl.org/common/downloads/release-5/pairs/orthologs.txt.gz). Worm genes are provided as WormBase IDs and human genes are provided as ENSP IDs. Version 5 of OrthoMCL uses Ensembl release 56 <`ftp://ftp.ensembl.org/pub/release-56/mysql/homo_sapiens_core_56_37a/`>.
+Version 5 (2015-07-23) of OrthoMCL is accessible [here](http://orthomcl.org/). Worm genes are provided as WormBase IDs and human genes are provided as ENSP IDs. Version 5 of OrthoMCL uses Ensembl release 56 <`ftp://ftp.ensembl.org/pub/release-56/mysql/homo_sapiens_core_56_37a/`>.
 
-1. First, the orthologs are read from OrthoMCL, provided on [this page](http://orthomcl.org/common/downloads/release-5/pairs/orthologs.txt.gz). Each line of this file indicates an ortholog here. Each human and worm gene is preceded with "`hsap|`" and "`cele|`" respectively.
-2. The included `cleanup.sh` file filters for only lines that have both "`hsap|`" and "`cele|`", indicating a human-worm ortholog. Further editing is done to result in a clean CSV for the subsequent steps.
+1. First, the orthologs are obtained from OrthoMCL:
+    * Step 1: Phyletic filter with `cele+hsap=2T`
+    * Step 2: To sequences
+    * Step 3a: Nested strategy of union between `cele` and `hsap` taxonomies
+    * Step 3b: Intersection between output of Step 2 and 3a
+    * This results in 13,515 entries, with source accession IDs and group IDs
+2. The orthologs are provided as groupings, so combinations are generated using [`generate_combinations()`](https://github.com/woojink/ortholist/blob/master/src/helper/misc.py#L41) under `helper.misc`.
 3. Human genes are provided as ENSP IDs, which needs to be converted to ENSG IDs for the purpose of this project. Using four tables from Ensembl (`translation_stable_id.txt.gz`, `translation.txt.gz`, `transcript.txt.gz`, `gene_stable_id.txt.gz`), we are able to obtain ENSG ID that correspond to each ENSP ID.
 4. WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
 
 #### Statistics
 * Before
-    - Orthologs: 6,124
-    - Unique worm genes: 4,683
-    - Unique human genes: 5,159
+    - Orthologs: 12,718
+    - Unique worm genes: 5,727
+    - Unique human genes: 7,788
 * Genes missing due to `ENSP` to `ENSG` mapping: 0
 * After
-    - Orthologs: 6,124
-    - Unique worm genes: 4,682 (33 merged entries)
-    - Unique human genes: 5,159
+    - Orthologs: 12,680
+    - Unique worm genes: 5,707 (63 merged, 33 pseudogene, 4 killed due to lack of evidence, 1 transposon entries)
+    - Unique human genes: 7,784
 
 ### OMA
 May 2016 release of OMA is used.

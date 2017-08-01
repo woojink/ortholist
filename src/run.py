@@ -11,6 +11,7 @@ import pandas as pd
 from helper.misc import generate_combinations, tidy_split
 from helper.wb_map import get_ce_wb_updated
 
+from collections import defaultdict
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 
@@ -23,15 +24,14 @@ def get_orthomcl():
     The H. sapiens side is provided as ENSP IDs instead of ENSG IDs, so the IDs are mapped using
     Ensembl release 56, which OrthoMCL version 5 uses.
 
-    Version 5 (2015-07-23):
-    http://orthomcl.org/common/downloads/release-5/pairs/orthologs.txt.gz
+    Version 5 (2015-07-23)
 
     Returns:
         pandas.DataFrame: Data frame containing the orthologs from OrthoMCL
     """
 
     # Read the ortholog list
-    orthomcl = pd.read_csv('data/orthomcl/orthologs.csv', names=['CE_WB_OLD', 'HS_ENSP'])
+    orthomcl = _get_raw_orthomcl()
 
     # Convert ENSP to ENSG
     orthomcl = pd.merge(orthomcl, _get_ensembl_56_ensp_ensg_map(),
@@ -45,6 +45,35 @@ def get_orthomcl():
     orthomcl = orthomcl[['CE_WB_CURRENT', 'HS_ENSG', 'CE_WB_OLD', 'CE_WB_COMMENT']]
 
     return orthomcl
+
+def _get_raw_orthomcl():
+    """Returns an ortholog table for OrthoMCL
+
+    Because OrthoMCL orthologs are provided as groupings, combinations are
+    generated using generate_combinations(), which uses itertools.product().
+
+    Returns:
+        pandas.DataFrame: Data frame containing the raw orthologs from OrthoMCL
+    """
+    ortholog_list = []
+    with gzip.open('data/orthomcl/groupings.csv.gz', 'rt') as file:
+        reader = csv.reader(file, delimiter=',')
+
+        groups = defaultdict(lambda: defaultdict(set))
+        for row in reader:
+            group_id = row[1]
+            source_id = row[0]
+
+            if source_id.startswith('WBGene'):
+                groups[group_id]['cele'].add(source_id)
+            else:
+                groups[group_id]['hsap'].add(source_id)
+
+    for key in groups:
+        ortholog_list += generate_combinations(groups[key])
+
+    return pd.DataFrame(ortholog_list, columns=['CE_WB_OLD', 'HS_ENSP']) \
+            .drop_duplicates()
 
 def _get_ensembl_56_ensp_ensg_map():
     """Return ENSP to ENSG mapping from Ensembl release 56
@@ -441,7 +470,6 @@ def get_homologene(preprocessed=True):
     ortholog_file = 'data/homologene/orthologs.tsv'
 
     if not preprocessed:
-        print('Preprocessing Homologene orthologs...')
         subprocess.Popen(['./preprocess.sh'], cwd='data/homologene', shell=True)
 
     if not os.path.isfile(ortholog_file):
