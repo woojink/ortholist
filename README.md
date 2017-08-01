@@ -77,12 +77,12 @@ May 2016 release of OMA is used.
     - Unique human genes: 4,559
 
 ### Ensembl Compara
-Release 87 (2016-12) of Ensembl is used for Ortholist.
+Releases 87 (2016-12), 88 (2017-03), and 89 (2017-05) of Ensembl are used for Ortholist.
 
-1. Orthologs are directly obtained from [December 2016 BioMart](http://dec2016.archive.ensembl.org/biomart/martview). Worm genes were obtained as Wormbase IDs and human genes as ENSG IDs.
+1. Orthologs are directly obtained from [December 2016](http://dec2016.archive.ensembl.org/biomart/martview), [March 2017](http://mar2017.archive.ensembl.org/biomart/martview), and [May 2017 BioMart](http://may2017.archive.ensembl.org/biomart/martview). Worm genes were obtained as Wormbase IDs and human genes as ENSG IDs.
 2. WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
 
-#### Statistics
+#### Statistics (release 87)
 * Before
     - Orthologs: 27,682
     - Unique worm genes: 6,285
@@ -91,6 +91,26 @@ Release 87 (2016-12) of Ensembl is used for Ortholist.
     - Orthologs: 27,679
     - Unique worm genes: 6,283 (1 merged, 3 pseudogene entries)
     - Unique human genes: 8,297
+
+#### Statistics (release 88)
+* Before
+    - Orthologs: 27,472
+    - Unique worm genes: 6,385
+    - Unique human genes: 8,260
+* After
+    - Orthologs: 27,469
+    - Unique worm genes: 6,383 (1 merged, 3 pseudogene entries)
+    - Unique human genes: 8,260
+
+#### Statistics (release 89)
+* Before
+    - Orthologs: 27,883
+    - Unique worm genes: 6,369
+    - Unique human genes: 8,272
+* After
+    - Orthologs: 27,880
+    - Unique worm genes: 6,367 (1 merged, 3 pseudogene entries)
+    - Unique human genes: 8,272
 
 ### InParanoid
 Release 8.0 (2013-12) of InParanoid is used for Ortholist.

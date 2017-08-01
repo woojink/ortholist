@@ -174,18 +174,25 @@ def _get_oma_wb_map():
 ####################
 # Ensembl Compara
 ####################
-def get_compara():
+def get_compara(version):
     """Returns the Ensembl Compara ortholog table between C. elegans and H. sapiens.
 
     Ensembl 87 BioMart (2016-12)
     http://dec2016.archive.ensembl.org/biomart/martview
 
+    Ensembl 88 BioMart (2017-03)
+    http://mar2017.archive.ensembl.org/biomart/martview
+
+    Ensembl 89 BioMart (2017-05)
+    http://may2017.archive.ensembl.org/biomart/martview
+
     Returns:
         pandas.DataFrame: DataFrame containing the orthologs from Ensembl Compara
     """
+    source = 'data/ensembl/{}/orthologs.tsv'.format(version)
 
     # Read the ortholog list
-    compara = pd.read_csv('data/ensembl/87/orthologs.tsv', sep='\t', header=0, usecols=[0, 2],
+    compara = pd.read_csv(source, sep='\t', header=0, usecols=[0, 2],
                           names=['CE_WB_OLD', 'HS_ENSG'])
 
     # Deal with WB ID changes
@@ -680,7 +687,9 @@ if __name__ == "__main__":
     print('\nProcessing the orthologs...')
     ORTHOMCL = get_orthomcl()
     OMA = get_oma()
-    COMPARA = get_compara()
+    COMPARA = get_compara(87)
+    COMPARA88 = get_compara(88)
+    COMPARA89 = get_compara(89)
     INPARANOID = get_inparanoid()
     ORTHOINSPECTOR = get_orthoinspector(preprocessed=True, uniprot_map_built=False)
     HOMOLOGENE = get_homologene(preprocessed=False)
@@ -691,6 +700,8 @@ if __name__ == "__main__":
     ORTHOMCL.to_csv('results/orthomcl.csv', index=False)
     OMA.to_csv('results/oma.csv', index=False)
     COMPARA.to_csv('results/compara.csv', index=False)
+    COMPARA88.to_csv('results/compara88.csv', index=False)
+    COMPARA89.to_csv('results/compara89.csv', index=False)
     INPARANOID.to_csv('results/inparanoid.csv', index=False)
     ORTHOINSPECTOR.to_csv('results/orthoinspector.csv', index=False)
     HOMOLOGENE.to_csv('results/homologene.csv', index=False)
@@ -703,6 +714,8 @@ if __name__ == "__main__":
 	    ("ORTHOMCL", ORTHOMCL),
 	    ("OMA", OMA),
 	    ("COMPARA", COMPARA),
+        ("COMPARA88", COMPARA88),
+        ("COMPARA89", COMPARA89),
 	    ("INPARANOID", INPARANOID),
 	    ("ORTHOINSPECTOR", ORTHOINSPECTOR),
 	    ("HOMOLOGENE", HOMOLOGENE)
@@ -722,6 +735,8 @@ if __name__ == "__main__":
     ORTHOMCL.to_excel(WRITER, 'orthomcl', index=False)
     OMA.to_excel(WRITER, 'oma', index=False)
     COMPARA.to_excel(WRITER, 'compara', index=False)
+    COMPARA88.to_excel(WRITER, 'compara88', index=False)
+    COMPARA89.to_excel(WRITER, 'compara89', index=False)
     INPARANOID.to_excel(WRITER, 'inparanoid', index=False)
     ORTHOINSPECTOR.to_excel(WRITER, 'orthoinspector', index=False)
     HOMOLOGENE.to_excel(WRITER, 'homologene', index=False)
@@ -740,6 +755,8 @@ if __name__ == "__main__":
     ORTHOMCL.to_sql(name='orthomcl', con=ENGINE, if_exists='replace', index=False)
     OMA.to_sql(name='oma', con=ENGINE, if_exists='replace', index=False)
     COMPARA.to_sql(name='compara', con=ENGINE, if_exists='replace', index=False)
+    COMPARA88.to_sql(name='compara88', con=ENGINE, if_exists='replace', index=False)
+    COMPARA89.to_sql(name='compara89', con=ENGINE, if_exists='replace', index=False)
     INPARANOID.to_sql(name='inparanoid', con=ENGINE, if_exists='replace', index=False)
     ORTHOINSPECTOR.to_sql(name='orthoinspector', con=ENGINE, if_exists='replace', index=False)
     HOMOLOGENE.to_sql(name='homologene', con=ENGINE, if_exists='replace', index=False)
