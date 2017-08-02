@@ -683,7 +683,9 @@ def get_wormbase_table():
     return wb_df
 
 if __name__ == "__main__":
+    ####################
     # Process the orthologs
+    ####################
     print('\nProcessing the orthologs...')
     ORTHOMCL = get_orthomcl()
     OMA = get_oma()
@@ -695,7 +697,9 @@ if __name__ == "__main__":
     HOMOLOGENE = get_homologene(preprocessed=False)
     WORMBASE = get_wormbase_table()
 
+    ####################
     # Write to CSV
+    ####################
     print('\nWriting to CSV...')
     ORTHOMCL.to_csv('results/orthomcl.csv', index=False)
     OMA.to_csv('results/oma.csv', index=False)
@@ -708,17 +712,19 @@ if __name__ == "__main__":
     WORMBASE.to_csv('results/wormbase.csv', index=False)
     print('Done!')
 
+    ####################
     # Write a consolidated CSV
+    ####################
     print('\nWriting a consolidated CSV...')
     DATABASES = [
-	    ("ORTHOMCL", ORTHOMCL),
-	    ("OMA", OMA),
-	    ("COMPARA", COMPARA),
+        ("ORTHOMCL", ORTHOMCL),
+        ("OMA", OMA),
+        ("COMPARA", COMPARA),
         ("COMPARA88", COMPARA88),
         ("COMPARA89", COMPARA89),
-	    ("INPARANOID", INPARANOID),
-	    ("ORTHOINSPECTOR", ORTHOINSPECTOR),
-	    ("HOMOLOGENE", HOMOLOGENE)
+        ("INPARANOID", INPARANOID),
+        ("ORTHOINSPECTOR", ORTHOINSPECTOR),
+        ("HOMOLOGENE", HOMOLOGENE)
     ]
     consolidated_df = WORMBASE.set_index('CE_WB_CURRENT')
     for name, db in DATABASES:
@@ -726,10 +732,56 @@ if __name__ == "__main__":
         grouped_df = db.groupby('CE_WB_CURRENT').apply(lambda x: ','.join(sorted(x.HS_ENSG)))
         grouped_df.name = name
         consolidated_df = consolidated_df.join(grouped_df)
-    consolidated_df.to_csv('results/all.csv')
+    consolidated_df.to_csv('results/all.csv.gz', index=False, compression='gzip')
     print('Done!')
 
+    ####################
+    # Master table
+    ####################
+    print('\nWriting a master CSV...')
+    all_pairs = defaultdict(set)
+    for name, db in DATABASES:
+        nn = db['CE_WB_CURRENT'].notnull() & db['HS_ENSG'].notnull()
+        for ce, hs in db[['CE_WB_CURRENT','HS_ENSG']][nn].values:
+            all_pairs[(ce, hs)].add(name)
+
+    ## Create a consolidated pair list with list of databases and a score
+    master_tuples = [(k[0], k[1], sorted(list(v)), len(v)) for k,v in all_pairs.items()]
+    master_df = pd.DataFrame(master_tuples,
+                             columns=['CE_WB_CURRENT', 'HS_ENSG', 'Databases', 'Score'])
+    master_df = pd.merge(master_df, WORMBASE, how='left', on='CE_WB_CURRENT')
+
+    ## Retrieve SMART, GO, and HGNC information from Ensembl 89
+    ensembl_data = defaultdict(lambda: defaultdict(set))
+    with gzip.open('data/ensembl/89/ensembl_annotations.tsv.gz', 'rt') as file:
+        reader = csv.reader(file, delimiter="\t")
+        for ensg, smart, go, _, hgnc in reader:
+            if smart:
+                ensembl_data[ensg]['SMART'].add(smart)
+            if go:
+                ensembl_data[ensg]['GO'].add(go)
+            if 'HGNC' not in ensembl_data[ensg] and hgnc:
+                ensembl_data[ensg]['HGNC'] = hgnc
+    ensembl_df = pd.DataFrame.from_dict(ensembl_data, orient='index')
+    ensembl_df.reset_index(inplace=True)
+    ensembl_df.rename(columns={'index': 'HS_ENSG'}, inplace=True)
+
+    ## Join and export
+    master_df = pd.merge(master_df, ensembl_df, how='left', on='HS_ENSG')
+    master_df['Databases'] = master_df['Databases'] \
+        .apply(lambda x: '|'.join(sorted(list(x))) if isinstance(x, list) else None)
+    master_df['SMART'] = master_df['SMART'] \
+        .apply(lambda x: '|'.join(sorted(list(x))) if isinstance(x, set) else None)
+    master_df['GO'] = master_df['GO'] \
+        .apply(lambda x: '|'.join(sorted(list(x), key=lambda x: x.lower())) \
+            if isinstance(x, set) else None)
+
+    master_df.to_csv('results/master.csv.gz', index=False, compression='gzip')
+    print('Done!')
+
+    ####################
     # Write to Excel
+    ####################
     print("\nWriting to Excel...")
     WRITER = pd.ExcelWriter('results/results.xlsx')
     ORTHOMCL.to_excel(WRITER, 'orthomcl', index=False)
@@ -744,13 +796,15 @@ if __name__ == "__main__":
     WRITER.save()
     print('Done!')
 
-    # Connect to database, create if needed
+    ####################
+    # Write to database
+    ####################
+    ## Connect to database, create if needed
     print('\nConnecting to database...')
     ENGINE = create_engine('mysql://root:@localhost/ortholist')
     if not database_exists(ENGINE.url):
         create_database(ENGINE.url)
 
-    # Write to database
     print('Writing to database \'ortholist\'...')
     ORTHOMCL.to_sql(name='orthomcl', con=ENGINE, if_exists='replace', index=False)
     OMA.to_sql(name='oma', con=ENGINE, if_exists='replace', index=False)
@@ -762,4 +816,5 @@ if __name__ == "__main__":
     HOMOLOGENE.to_sql(name='homologene', con=ENGINE, if_exists='replace', index=False)
     WORMBASE.to_sql(name='wormbase', con=ENGINE, if_exists='replace', index=False)
     consolidated_df.to_sql(name='consolidated', con=ENGINE, if_exists='replace', index=False)
+    master_df.to_sql(name='master', con=ENGINE, if_exists='replace', index=False)
     print('Done!')

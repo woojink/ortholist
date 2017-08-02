@@ -37,7 +37,7 @@ This WormBase ID updating is done through [`get_ce_wb_updated()`](https://github
 ### OrthoMCL
 Version 5 (2015-07-23) of OrthoMCL is accessible [here](http://orthomcl.org/). Worm genes are provided as WormBase IDs and human genes are provided as ENSP IDs. Version 5 of OrthoMCL uses Ensembl release 56 <`ftp://ftp.ensembl.org/pub/release-56/mysql/homo_sapiens_core_56_37a/`>.
 
-1. First, the orthologs are obtained from OrthoMCL:
+1. First, the orthologs are obtained from OrthoMCL with the following strategy:
     * Step 1: Phyletic filter with `cele+hsap=2T`
     * Step 2: To sequences
     * Step 3a: Nested strategy of union between `cele` and `hsap` taxonomies
@@ -49,12 +49,12 @@ Version 5 (2015-07-23) of OrthoMCL is accessible [here](http://orthomcl.org/). W
 
 #### Statistics
 * Before
-    - Orthologs: 12,718
+    - Orthologs pairs: 12,718
     - Unique worm genes: 5,727
     - Unique human genes: 7,788
 * Genes missing due to `ENSP` to `ENSG` mapping: 0
 * After
-    - Orthologs: 12,680
+    - Orthologs pairs: 12,680
     - Unique worm genes: 5,707 (63 merged, 33 pseudogene, 4 killed due to lack of evidence, 1 transposon entries)
     - Unique human genes: 7,784
 
@@ -67,12 +67,12 @@ May 2016 release of OMA is used.
 
 #### Statistics
 * Before
-    - Orthologs: 5,370
+    - Orthologs pairs: 5,370
     - Unique worm genes: 3,885
     - Unique human genes: 4,559
 * Genes missing due to Wormpep to Wormbase mapping: 0
 * After
-    - Orthologs: 5,368
+    - Orthologs pairs: 5,368
     - Unique worm genes: 3,884 (9 merging and 2 pseudogene events)
     - Unique human genes: 4,559
 
@@ -84,31 +84,31 @@ Releases 87 (2016-12), 88 (2017-03), and 89 (2017-05) of Ensembl are used for Or
 
 #### Statistics (release 87)
 * Before
-    - Orthologs: 27,682
+    - Orthologs pairs: 27,682
     - Unique worm genes: 6,285
     - Unique human genes: 8,297
 * After
-    - Orthologs: 27,679
+    - Orthologs pairs: 27,679
     - Unique worm genes: 6,283 (1 merged, 3 pseudogene entries)
     - Unique human genes: 8,297
 
 #### Statistics (release 88)
 * Before
-    - Orthologs: 27,472
+    - Orthologs pairs: 27,472
     - Unique worm genes: 6,385
     - Unique human genes: 8,260
 * After
-    - Orthologs: 27,469
+    - Orthologs pairs: 27,469
     - Unique worm genes: 6,383 (1 merged, 3 pseudogene entries)
     - Unique human genes: 8,260
 
 #### Statistics (release 89)
 * Before
-    - Orthologs: 27,883
+    - Orthologs pairs: 27,883
     - Unique worm genes: 6,369
     - Unique human genes: 8,272
 * After
-    - Orthologs: 27,880
+    - Orthologs pairs: 27,880
     - Unique worm genes: 6,367 (1 merged, 3 pseudogene entries)
     - Unique human genes: 8,272
 
@@ -128,7 +128,7 @@ Release 8.0 (2013-12) of InParanoid is used for Ortholist.
 
 #### Statistics
 * Before
-    - Orthologs: 12,826
+    - Orthologs pairs: 12,826
     - Unique worm genes: 5,545
     - Unique human genes: 8,395
 * Uniprot - Wormbase mapping (5,545 of 5,545)
@@ -152,7 +152,7 @@ For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) is used.
 
 #### Statistics
 * Before
-    - Orthologs: 11,122
+    - Orthologs pairs: 11,122
     - Unique worm genes: 5,547
     - Unique human genes: 7,317
 * Uniprot - Wormbase mapping (5,547 of 5,547)
@@ -168,7 +168,7 @@ For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) is used.
     - Unmatched: 1 (pseudogene)
     - Unique Ensembl IDs: 7,782
 * After mapping and Wormbase ID update
-    - Orthologs: 12,688
+    - Orthologs pairs: 12,688
     - Unique worm genes: 5,364 (11 merged, 10 pseudogene entries)
     - Unique human genes: 7,782
 
@@ -197,7 +197,7 @@ Build 68 (2014-05-06) is used for Homologene
 
 #### Statistics
 * Before
-    - Orthologs: 3,811
+    - Orthologs pairs: 3,811
     - Unique worm genes: 3,799
     - Unique human genes: 3,184
 * Entrez - Wormbase mapping (3,799 of 3,799)
@@ -211,6 +211,6 @@ Build 68 (2014-05-06) is used for Homologene
     - Manually matched: 6
     - Unique Ensembl IDs: 3,205
 * After mapping and Wormbase ID update
-    - Orthologs: 3,831
+    - Orthologs pairs: 3,831
     - Unique worm genes: 3,779 (2 merged, 6 pseudogene entries)
     - Unique human genes: 3,205
