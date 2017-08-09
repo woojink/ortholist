@@ -654,11 +654,14 @@ def get_wormbase_table():
     # Read Ahringer locations, mapped to WS239
     ahringer_df = pd.read_csv("data/ahringer/locations_ws239.csv", sep=',',
                               header=None, usecols=[0,1],
-                              names=["AHRINGER_LOC", 'CE_WB_OLD'])
+                              names=["AHRINGER_LOC", 'CE_WB_OLD']) \
+                    .groupby('CE_WB_OLD')['AHRINGER_LOC'] \
+                    .apply(lambda x: '|'.join(x)) \
+                    .reset_index()
 
     # Deal with WB ID changes
     ahringer_df = pd.concat([ahringer_df, get_ce_wb_updated(ahringer_df)], axis=1) \
-            .sort_values(['CE_WB_CURRENT', 'AHRINGER_LOC']).reset_index(drop=True)
+                    .sort_values(['CE_WB_CURRENT']).reset_index(drop=True)
 
     # Read InterPro domains
     interpro_tuples = []
@@ -719,8 +722,6 @@ if __name__ == "__main__":
     DATABASES = [
         ("ORTHOMCL", ORTHOMCL),
         ("OMA", OMA),
-        ("COMPARA", COMPARA),
-        ("COMPARA88", COMPARA88),
         ("COMPARA89", COMPARA89),
         ("INPARANOID", INPARANOID),
         ("ORTHOINSPECTOR", ORTHOINSPECTOR),
@@ -768,6 +769,7 @@ if __name__ == "__main__":
 
     ## Join and export
     master_df = pd.merge(master_df, ensembl_df, how='left', on='HS_ENSG')
+
     master_df['Databases'] = master_df['Databases'] \
         .apply(lambda x: '|'.join(sorted(list(x))) if isinstance(x, list) else None)
     master_df['SMART'] = master_df['SMART'] \
@@ -777,6 +779,10 @@ if __name__ == "__main__":
             if isinstance(x, set) else None)
 
     master_df.to_csv('results/master.csv.gz', index=False, compression='gzip')
+
+    ## Prepare for Excel
+    MASTER_DF_EXCEL = master_df.set_index(['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID',
+                     'AHRINGER_LOC', 'INTERPRO_DOM', 'HS_ENSG'])
     print('Done!')
 
     ####################
@@ -793,6 +799,10 @@ if __name__ == "__main__":
     ORTHOINSPECTOR.to_excel(WRITER, 'orthoinspector', index=False)
     HOMOLOGENE.to_excel(WRITER, 'homologene', index=False)
     WORMBASE.to_excel(WRITER, 'wormbase', index=False)
+    WRITER.save()
+
+    WRITER = pd.ExcelWriter('results/master.xlsx')
+    MASTER_DF_EXCEL.to_excel(WRITER)
     WRITER.save()
     print('Done!')
 
