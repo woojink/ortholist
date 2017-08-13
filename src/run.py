@@ -102,8 +102,10 @@ if __name__ == "__main__":
 
     # Export unique IDs
     print("    Writing unique IDs")
-    write_to_csv(combined_df['HS_ENSG'].drop_duplicates(), "unique_ensg")
-    write_to_csv(combined_df['CE_WB_CURRENT'].drop_duplicates(), "unique_wb")
+    write_to_csv(combined_df['HS_ENSG'] \
+        .drop_duplicates().sort_values(), "unique_ensg")
+    write_to_csv(combined_df['CE_WB_CURRENT'] \
+        .drop_duplicates().sort_values(), "unique_wb")
     print("Done")
 
     ####################

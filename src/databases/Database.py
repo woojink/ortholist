@@ -32,7 +32,7 @@ class Database(object):
         """
         # Deal with WB ID changes
         df = pd.concat([df, get_ce_wb_updated(df)], axis=1) \
-                    .sort_values(['CE_WB_CURRENT', 'HS_ENSG'])
+                    .sort_values(['CE_WB_CURRENT', 'HS_ENSG', 'CE_WB_OLD'])
 
         # Return the rearranged database
         return df[['CE_WB_CURRENT', 'HS_ENSG', 'CE_WB_OLD', 'CE_WB_COMMENT']]

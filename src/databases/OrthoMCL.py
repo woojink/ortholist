@@ -10,8 +10,8 @@ from helper.misc import generate_combinations
 class OrthoMCL(Database):
     """OrthoMCL ortholog table between C. elegans and H. sapiens.
 
-    The H. sapiens side is provided as ENSP IDs instead of ENSG IDs, so the IDs are mapped using
-    Ensembl release 56, which OrthoMCL version 5 uses.
+    The H. sapiens side is provided as ENSP IDs instead of ENSG IDs, so the
+    IDs are mapped using Ensembl release 56, which OrthoMCL version 5 uses.
 
     Version 5 (2015-07-23)
     """
@@ -21,8 +21,8 @@ class OrthoMCL(Database):
     def _read_raw(self):
         """Returns an ortholog table for OrthoMCL
 
-        Because OrthoMCL orthologs are provided as groupings, combinations are generated using
-        generate_combinations(), which uses itertools.product().
+        Because OrthoMCL orthologs are provided as groupings, combinations are
+        generated using generate_combinations(), which uses itertools.product().
 
         Returns:
             A DataFrame containing the raw orthologs from OrthoMCL
@@ -55,8 +55,8 @@ class OrthoMCL(Database):
     def _get_ensembl_56_ensp_ensg_map():
         """Returns ENSP to ENSG mapping from Ensembl release 56
 
-        Because there convinient direct mapping from ENSP to ENSG, various tables are used to
-        map between the different stages.
+        Because there convinient direct mapping from ENSP to ENSG, various
+        tables are used to map between the different stages.
 
         Data from
             ftp://ftp.ensembl.org/pub/release-56/mysql/homo_sapiens_core_56_37a/
@@ -67,19 +67,24 @@ class OrthoMCL(Database):
         Returns:
             A DataFrame containing mapping between ENSP and ENSG
         """
-        ensp_ensg_df = pd.read_csv("data/ensembl/56/translation_stable_id.txt.gz", sep='\t',
-                                   compression='gzip', header=None, usecols=[0, 1],
-                                   names=["translation_id", "ENSP"])
+        ensp_ensg_df = pd.read_csv( \
+                        "data/ensembl/56/translation_stable_id.txt.gz",
+                        sep='\t', compression='gzip',
+                        header=None, usecols=[0, 1],
+                        names=["translation_id", "ENSP"])
 
-        translation_to_transcript = pd.read_csv("data/ensembl/56/translation.txt.gz", sep='\t',
-                                                compression='gzip', header=None, usecols=[0, 1],
-                                                names=["translation_id", "transcript_id"])
-        transcript_to_gene = pd.read_csv("data/ensembl/56/transcript.txt.gz", sep='\t',
-                                         compression='gzip', header=None, usecols=[0, 1],
-                                         names=["transcript_id", "gene_id"])
-        gene_id_to_gene = pd.read_csv("data/ensembl/56/gene_stable_id.txt.gz", sep='\t',
-                                      compression='gzip', header=None, usecols=[0, 1],
-                                      names=["gene_id", 'HS_ENSG'])
+        translation_to_transcript = pd.read_csv( \
+                        "data/ensembl/56/translation.txt.gz", sep='\t',
+                        compression='gzip', header=None, usecols=[0, 1],
+                        names=["translation_id", "transcript_id"])
+        transcript_to_gene = pd.read_csv( \
+                        "data/ensembl/56/transcript.txt.gz", sep='\t',
+                        compression='gzip', header=None, usecols=[0, 1],
+                        names=["transcript_id", "gene_id"])
+        gene_id_to_gene = pd.read_csv( \
+                        "data/ensembl/56/gene_stable_id.txt.gz", sep='\t',
+                        compression='gzip', header=None, usecols=[0, 1],
+                        names=["gene_id", 'HS_ENSG'])
 
         ensp_ensg_df = ensp_ensg_df \
             .set_index("translation_id") \
