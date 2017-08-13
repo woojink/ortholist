@@ -16,7 +16,7 @@ class Database(object):
         self.df = self._perform_worm_mapping()
         self.df = self._perform_human_mapping()
         self.df = self._process_wb_changes()
-        self.df = self.df.drop_duplicates()
+        self.df.drop_duplicates(inplace=True)
 
     def _process_wb_changes(self):
         """Processes the database with WormBase ID updates.
