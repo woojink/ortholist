@@ -3,7 +3,7 @@
 This project updates Ortholist ([version 1 here](http://www.greenwaldlab.org/ortholist/)) with results from both additional ortholog prediction programs and updated releases of previously included programs.
 
 ## Databases used
-* Ensembl Compara (Release 87, 2016-12)
+* Ensembl Compara (Releases 87, 2016-12; 88, 2017-03; and 89, 2017-05)
 * Homologene (Build 68, 2014-05-06)
 * InParanoid (8.0, 2013-12)
 * OMA (May 2016)
