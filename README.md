@@ -194,13 +194,13 @@ Version 5 (2015-07-23) of OrthoMCL is accessible [here](http://orthomcl.org/). W
     - Unique human genes: 7,784
 
 ### Master table
-The _master_ table contains all the orthologs from the databases included with IDs still present on WormBase WS255 and Ensembl Compara 89. It is constructed as follows:
+The _master_ table contains all the orthologs from the databases included with IDs still present on [WormBase WS255](http://www.wormbase.org/about/wormbase_release_WS255) and [Ensembl Compara 89](http://may2017.archive.ensembl.org/). It is constructed as follows:
 
 1. For each pair of ortholog in the combined database, list the databases that indicated the ortholog pair; create a list of tuples with the above.
-2. Using this list, create a DataFrame that indicates the ortholog pair, the databases, and the score (number of databases that indicated the ortholog)
+2. Using this list of tuples, create a DataFrame that indicates the ortholog pair, the databases, and the score (number of databases that indicated the ortholog)
 3. Discard pairs with ENSG IDs not present in Ensembl Compara 89
-4. Add additional worm gene information by [Left joining](https://en.wikipedia.org/wiki/Join_(SQL)#Left_outer_join) with the WormBase table that contains the information about common names, Ahringer locations, and InterPro domains
-5. Add additional human gene information by left joining with table generated with Ensembl 89, containing [SMART](http://smart.embl-heidelberg.de/), [GO](http://go.princeton.edu/), and HGNC names<br><img src="https://github.com/woojink/ortholist/blob/master/data/ensembl/89/additional_annotations.png" width="200px">
-6. Join the lists from step 5 into pipe-separated strings for downstream use
+4. Add additional worm gene information by [left joining](https://en.wikipedia.org/wiki/Join_(SQL)#Left_outer_join) with the WormBase table that contains the information about common names, Ahringer locations, and InterPro domains
+5. Add additional human gene information by left joining with table generated with Ensembl 89, containing HGNC names, [SMART](http://smart.embl-heidelberg.de/), and [GO](http://go.princeton.edu/) terms<br><img src="https://github.com/woojink/ortholist/blob/master/data/ensembl/89/additional_annotations.png" width="200px">
+6. Join the additional information that were provided as lists from step 5 into pipe-separated strings for downstream use in Excel
 7. Set multi-index in order to have merged columns for the final Excel file
-8. Export
+8. Export as `xlsx`
