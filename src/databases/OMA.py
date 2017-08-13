@@ -19,7 +19,8 @@ class OMA(Database):
             A DataFrame containing the raw orthologs from OMA
         """
         return pd.read_csv('data/oma/orthologs.tsv', sep='\t', header=None,
-                usecols=[0, 1], names=['CE_WORMPEP', 'HS_ENSG'])
+                    usecols=[0, 1], names=['CE_WORMPEP', 'HS_ENSG']) \
+                 .drop_duplicates()
 
     def _perform_worm_mapping(self):
         return pd.merge(self.df, self._get_oma_wb_map(), left_on='CE_WORMPEP',

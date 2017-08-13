@@ -12,7 +12,7 @@ This project updates Ortholist ([version 1 here](http://www.greenwaldlab.org/ort
 
 ## Instructions
 ### Pre-requisites
-This project makes use of Python 3 and MySQL. If you're on OS X / macOS, you can get these by first installing [Homebrew](https://brew.sh/) by putting the following on your Terminal:
+This project makes use of Python 3. If you're on macOS, you can get these by first installing [Homebrew](https://brew.sh/) by putting the following on your Terminal:
 ```bash
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
@@ -20,13 +20,7 @@ This project makes use of Python 3 and MySQL. If you're on OS X / macOS, you can
 Then running
 ```bash
 brew install python3
-brew install mysql
 ```
-
-Once MySQL installation is complete, get the service started with `mysql.server start`. You can connect to the service using `mysql -uroot` anytime to check the databases within.
-
-### Code
-The majority of the code is located under `src/run.py`, which processes the both raw and pre-processed data from ortholog prediction programs stored under `results`.
 
 ## Methodology
 ### WormBase
@@ -51,7 +45,7 @@ Version 5 (2015-07-23) of OrthoMCL is accessible [here](http://orthomcl.org/). W
 * Before
     - Orthologs pairs: 12,718
     - Unique worm genes: 5,727
-    - Unique human genes: 7,788
+    - Unique human proteins: 7,788
 * Genes missing due to `ENSP` to `ENSG` mapping: 0
 * After
     - Orthologs pairs: 12,680
@@ -82,35 +76,15 @@ Releases 87 (2016-12), 88 (2017-03), and 89 (2017-05) of Ensembl are used for Or
 1. Orthologs are directly obtained from [December 2016](http://dec2016.archive.ensembl.org/biomart/martview), [March 2017](http://mar2017.archive.ensembl.org/biomart/martview), and [May 2017 BioMart](http://may2017.archive.ensembl.org/biomart/martview). Worm genes were obtained as Wormbase IDs and human genes as ENSG IDs.
 2. WormBase ID changes are dealt with using `get_ce_wb_updated()` (see [above](#wormbase))
 
-#### Statistics (release 87)
+#### Statistics (combined 87-89)
 * Before
-    - Orthologs pairs: 27,682
-    - Unique worm genes: 6,285
-    - Unique human genes: 8,297
+    - Ortholog pairs: 16,340
+    - Unique worm genes: 6,825
+    - Unique human genes: 9,188
 * After
-    - Orthologs pairs: 27,679
-    - Unique worm genes: 6,283 (1 merged, 3 pseudogene entries)
-    - Unique human genes: 8,297
-
-#### Statistics (release 88)
-* Before
-    - Orthologs pairs: 27,472
-    - Unique worm genes: 6,385
-    - Unique human genes: 8,260
-* After
-    - Orthologs pairs: 27,469
-    - Unique worm genes: 6,383 (1 merged, 3 pseudogene entries)
-    - Unique human genes: 8,260
-
-#### Statistics (release 89)
-* Before
-    - Orthologs pairs: 27,883
-    - Unique worm genes: 6,369
-    - Unique human genes: 8,272
-* After
-    - Orthologs pairs: 27,880
-    - Unique worm genes: 6,367 (1 merged, 3 pseudogene entries)
-    - Unique human genes: 8,272
+    - Orthologs pairs: 16,339
+    - Unique worm genes: 6,823 (1 merged, 1 pseudogene entries)
+    - Unique human genes: 9,188
 
 ### InParanoid
 Release 8.0 (2013-12) of InParanoid is used for Ortholist.
@@ -140,6 +114,10 @@ Release 8.0 (2013-12) of InParanoid is used for Ortholist.
     - Found through the BioMart tool (TrEMBL): 13
     - Found through scraping history pages: 12
     - Remaining: 123
+* After
+    - Ortholog pairs: 15,136
+    - Unique worm genes: 5,587
+    - Unique human genes: 8,957
 
 ### OrthoInspector
 For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) is used.
@@ -152,7 +130,7 @@ For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) is used.
 
 #### Statistics
 * Before
-    - Orthologs pairs: 11,122
+    - Orthologs pairs: 10,542
     - Unique worm genes: 5,547
     - Unique human genes: 7,317
 * Uniprot - Wormbase mapping (5,547 of 5,547)
@@ -168,7 +146,7 @@ For OrthoInspector, "Quest for Orthologs (QfO) 04_2013" (2013-04) is used.
     - Unmatched: 1 (pseudogene)
     - Unique Ensembl IDs: 7,782
 * After mapping and Wormbase ID update
-    - Orthologs pairs: 12,688
+    - Orthologs pairs: 11,455
     - Unique worm genes: 5,364 (11 merged, 10 pseudogene entries)
     - Unique human genes: 7,782
 
@@ -211,6 +189,6 @@ Build 68 (2014-05-06) is used for Homologene
     - Manually matched: 6
     - Unique Ensembl IDs: 3,205
 * After mapping and Wormbase ID update
-    - Orthologs pairs: 3,831
+    - Orthologs pairs: 3,817
     - Unique worm genes: 3,779 (2 merged, 6 pseudogene entries)
     - Unique human genes: 3,205

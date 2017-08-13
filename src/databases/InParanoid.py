@@ -35,7 +35,8 @@ class InParanoid(Database):
         """
         df = pd.read_csv(self.ortholog_file,
                             sep='\t', header=0, usecols=[0, 1],
-                            names=['CE_UNIPROT', 'HS_UNIPROT'])
+                            names=['CE_UNIPROT', 'HS_UNIPROT']) \
+                .drop_duplicates()
 
         if build_uniprot_list:
             self._make_uniprot_list(df)

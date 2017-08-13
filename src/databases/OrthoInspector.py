@@ -24,7 +24,8 @@ class OrthoInspector(Database):
             DataFrame containing the raw orthologs from OrthoInspector
         """
         df = pd.read_csv('data/orthoinspector/orthologs.csv', sep=',',
-                usecols=[0, 1], names=['CE_UNIPROT', 'HS_UNIPROT'])
+                    usecols=[0, 1], names=['CE_UNIPROT', 'HS_UNIPROT']) \
+                .drop_duplicates()
 
         # if 'build_uniprot_list' in kwargs and kwargs['build_uniprot_list']:
         if build_uniprot_list:

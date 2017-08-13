@@ -35,7 +35,8 @@ class Homologene(Database):
             DataFrame containing the raw orthologs from Homologene
         """
         df = pd.read_csv(self.ortholog_file, sep='\t', header=0, usecols=[0, 1],
-                             names=['CE_ENTREZ', 'HS_ENTREZ'])
+                             names=['CE_ENTREZ', 'HS_ENTREZ']) \
+                .drop_duplicates()
 
         if build_entrez_list:
             self._make_entrez_list(df)
