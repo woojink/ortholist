@@ -1,7 +1,8 @@
 import csv
 import os.path
-import pandas as pd
 import re
+
+import pandas as pd
 
 from databases.Database import Database
 from helper.misc import generate_combinations, tidy_split
@@ -35,7 +36,7 @@ class Homologene(Database):
             DataFrame containing the raw orthologs from Homologene
         """
         df = pd.read_csv(self.ortholog_file, sep='\t', header=0, usecols=[0, 1],
-                             names=['CE_ENTREZ', 'HS_ENTREZ']) \
+                         names=['CE_ENTREZ', 'HS_ENTREZ']) \
                 .drop_duplicates()
 
         if build_entrez_list:
@@ -45,11 +46,11 @@ class Homologene(Database):
 
     def _perform_worm_mapping(self):
         return pd.merge(self.df, self._get_homologene_entrez_wb_map(),
-                          how='left', on='CE_ENTREZ')
+                        how='left', on='CE_ENTREZ')
 
     def _perform_human_mapping(self):
         return pd.merge(self.df, self._get_homologene_entrez_ensembl_map(),
-                          how='left', on='HS_ENTREZ')
+                        how='left', on='HS_ENTREZ')
 
     @staticmethod
     def _make_homologene_table(ortholog_file):
@@ -117,13 +118,13 @@ class Homologene(Database):
                             .drop_duplicates() \
                             .sort_values()
         entrez_list_ce.to_csv('data/homologene/entrez_list_ce.csv',
-                                index=False)
+                              index=False)
 
         entrez_list_hs = df['HS_ENTREZ'] \
                             .drop_duplicates() \
                             .sort_values()
         entrez_list_hs.to_csv('data/homologene/entrez_list_hs.csv',
-                                index=False)
+                              index=False)
 
     @staticmethod
     def _get_homologene_entrez_wb_map():
@@ -151,7 +152,7 @@ class Homologene(Database):
 
         # Load the rest from the scraped results
         scraped_df = pd.read_csv( \
-                        'data/homologene/entrez_wb_map_scraped.csv', 
+                        'data/homologene/entrez_wb_map_scraped.csv',
                         sep=',',
                         names=['CE_ENTREZ', 'CE_WB_OLD'])
 

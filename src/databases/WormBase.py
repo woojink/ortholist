@@ -1,8 +1,9 @@
 import csv
 import gzip
-import pandas as pd
 
 from collections import defaultdict
+
+import pandas as pd
 
 from helper.wb_map import get_ce_wb_updated
 
@@ -48,7 +49,7 @@ class WormBase(object):
 
         # Read Ahringer locations, mapped to WS239
         ahringer_df = pd.read_csv("data/ahringer/locations_ws239.csv", sep=',',
-                                  header=None, usecols=[0,1],
+                                  header=None, usecols=[0, 1],
                                   names=["AHRINGER_LOC", 'CE_WB_OLD']) \
                         .groupby('CE_WB_OLD')['AHRINGER_LOC'] \
                         .apply(lambda x: '|'.join(x)) \
@@ -61,7 +62,9 @@ class WormBase(object):
 
         # Read InterPro domains
         ip_dict = defaultdict(set)
-        with gzip.open('data/wormbase/c_elegans.PRJNA13758.WS255.protein_domains.tsv.gz', 'rt') as file:
+        with gzip.open( \
+              'data/wormbase/c_elegans.PRJNA13758.WS255.protein_domains.tsv.gz',
+              'rt') as file:
             reader = csv.reader(file, delimiter="\t")
             for line in reader:
                 wb_id = line[0]
@@ -71,14 +74,14 @@ class WormBase(object):
                 for domain in domains:
                     ip_dict[wb_id].add(domain)
         interpro_df = pd.DataFrame( \
-                        [(k, '|'.join(sorted(v))) for k,v in ip_dict.items()],
+                        [(k, '|'.join(sorted(v))) for k, v in ip_dict.items()],
                         columns=['CE_WB_CURRENT', 'INTERPRO_DOM'])
 
         # Left join using the WormBase gene ID table
         wb_df = pd.merge(wb_df, ahringer_df, how='left', on='CE_WB_CURRENT')
         wb_df = pd.merge(wb_df, interpro_df, how='left', on='CE_WB_CURRENT')
 
-        wb_df = wb_df[['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID', 
-                        'AHRINGER_LOC', 'INTERPRO_DOM']]
+        wb_df = wb_df[['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID',
+                       'AHRINGER_LOC', 'INTERPRO_DOM']]
 
         return wb_df

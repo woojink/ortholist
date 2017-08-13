@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+"""Script to process OrthoList 2 and write to various files
+"""
 import csv
 import gzip
-import pandas as pd
 
 from collections import defaultdict
+
+import pandas as pd
 
 from databases.EnsemblCompara import EnsemblCompara
 from databases.Homologene import Homologene
@@ -24,10 +27,10 @@ def write_to_csv(df, filename, gzip=False):
     """
     if not gzip:
         df.to_csv('results/{filename}.csv'.format(filename=filename),
-                    index=False)
+                  index=False)
     else:
         df.to_csv('results/{filename}.csv.gz'.format(filename=filename),
-                    index=False, compression='gzip')
+                  index=False, compression='gzip')
 
 def get_ensembl_annotations():
     """Retrieve SMART, GO, and HGNC information from Ensembl 89
@@ -38,11 +41,11 @@ def get_ensembl_annotations():
     ensembl_data = defaultdict(lambda: defaultdict(set))
     with gzip.open('data/ensembl/89/ensembl_annotations.tsv.gz', 'rt') as file:
         reader = csv.reader(file, delimiter="\t")
-        for ensg, smart, go, _, hgnc in reader:
+        for ensg, smart, go_terms, _, hgnc in reader:
             if smart:
                 ensembl_data[ensg]['SMART'].add(smart)
-            if go:
-                ensembl_data[ensg]['GO'].add(go)
+            if go_terms:
+                ensembl_data[ensg]['GO'].add(go_terms)
             if 'HGNC' not in ensembl_data[ensg] and hgnc:
                 ensembl_data[ensg]['HGNC'] = hgnc
     ensembl_df = pd.DataFrame.from_dict(ensembl_data, orient='index')
@@ -63,7 +66,7 @@ if __name__ == "__main__":
     ORTHOINSPECTOR = OrthoInspector()
     ORTHOMCL = OrthoMCL()
     WORMBASE = WormBase()
-    
+
     ORTHOLOG_DATABASES = [COMPARA, HOMOLOGENE, INPARANOID,
                           OMA, ORTHOINSPECTOR, ORTHOMCL]
     ALL_DATABASES = ORTHOLOG_DATABASES + [WORMBASE]
@@ -82,29 +85,29 @@ if __name__ == "__main__":
     # Write to Excel
     ####################
     print('\nWriting to Excel...')
-    writer = pd.ExcelWriter('results/results.xlsx')
+    WRITER = pd.ExcelWriter('results/results.xlsx')
     for db in ALL_DATABASES:
         df, name, filename = db.get_df(), db.name, db.filename
         print("    Preparing {name}".format(name=db.name))
-        df.to_excel(writer, name, index=False)
-    writer.save()
+        df.to_excel(WRITER, name, index=False)
+    WRITER.save()
     print("Done!")
 
     ####################
     # Make combined database
     ####################
     print('\nProcessing combined database...')
-    combined_df = pd.DataFrame()
+    COMBINED_DF = pd.DataFrame()
     for db in ORTHOLOG_DATABASES:
-        combined_df = combined_df.append(db.get_df()).drop_duplicates()
+        COMBINED_DF = COMBINED_DF.append(db.get_df()).drop_duplicates()
     print("    Writing combined CSV")
-    write_to_csv(combined_df, "combined")
+    write_to_csv(COMBINED_DF, "combined")
 
     # Export unique IDs
     print("    Writing unique IDs")
-    write_to_csv(combined_df['HS_ENSG'] \
+    write_to_csv(COMBINED_DF['HS_ENSG'] \
         .drop_duplicates().sort_values(), "unique_ensg")
-    write_to_csv(combined_df['CE_WB_CURRENT'] \
+    write_to_csv(COMBINED_DF['CE_WB_CURRENT'] \
         .drop_duplicates().sort_values(), "unique_wb")
     print("Done")
 
@@ -113,56 +116,57 @@ if __name__ == "__main__":
     ####################
     print('\nPreparing master table...')
 
-    all_pairs = defaultdict(set)
+    ALL_PAIRS = defaultdict(set)
     for db in ORTHOLOG_DATABASES:
         df, name = db.get_df(), db.name
         nn_lines = df['CE_WB_CURRENT'].notnull() & df['HS_ENSG'].notnull()
-        for ce, hs in df[['CE_WB_CURRENT','HS_ENSG']][nn_lines].values:
-            all_pairs[(ce, hs)].add(name)
+        for ce, hs in df[['CE_WB_CURRENT', 'HS_ENSG']][nn_lines].values:
+            ALL_PAIRS[(ce, hs)].add(name)
 
     ## Create a consolidated pair list with list of databases and a score
-    ##  master_tuples contains the following:
+    ##  MASTER_TUPLES contains the following:
     ##   (worm gene, human gene, database list, score [number of databases])
-    master_tuples = [(k[0], k[1], sorted(list(v)), len(v)) \
-                        for k,v in all_pairs.items()]
-    master_df = pd.DataFrame(master_tuples,
-                    columns=['CE_WB_CURRENT', 'HS_ENSG', 'Databases', 'Score'])
+    MASTER_TUPLES = [(k[0], k[1], sorted(list(v)), len(v)) \
+                        for k, v in ALL_PAIRS.items()]
+    MASTER_DF = pd.DataFrame(MASTER_TUPLES,
+                             columns=['CE_WB_CURRENT', 'HS_ENSG',
+                                      'Databases', 'Score'])
 
     ## List of overlap present in Ensembl Compara 89
     ENSEMBL89_ENSG = pd.read_csv('data/ensembl/89/ensg_list.csv',
-                                    header=0, names=["HS_ENSG"])
+                                 header=0, names=["HS_ENSG"])
 
     ## Throw away ENSG IDs not present in Ensembl Compara 89 per Dan
-    master_df = pd.merge(master_df, ENSEMBL89_ENSG, how="inner", on="HS_ENSG")
+    MASTER_DF = pd.merge(MASTER_DF, ENSEMBL89_ENSG, how="inner", on="HS_ENSG")
 
     ## Add information from WormBase db (common name, Ahringer location, etc.)
-    master_df = pd.merge(master_df, WORMBASE.get_df(),
-                            how='left', on='CE_WB_CURRENT')
+    MASTER_DF = pd.merge(MASTER_DF, WORMBASE.get_df(),
+                         how='left', on='CE_WB_CURRENT')
 
     ## Add information from Ensembl 89 annotations (SMART, GO, HGNC name)
-    master_df = pd.merge(master_df, get_ensembl_annotations(),
-                            how='left', on='HS_ENSG')
+    MASTER_DF = pd.merge(MASTER_DF, get_ensembl_annotations(),
+                         how='left', on='HS_ENSG')
 
     ## Join lists into pipe-separated strings
-    master_df['Databases'] = master_df['Databases'] \
+    MASTER_DF['Databases'] = MASTER_DF['Databases'] \
         .apply(lambda x: '|'.join(sorted(list(x))) \
                 if isinstance(x, list) else None)
-    master_df['SMART'] = master_df['SMART'] \
+    MASTER_DF['SMART'] = MASTER_DF['SMART'] \
         .apply(lambda x: '|'.join(sorted(list(x))) \
                 if isinstance(x, set) else None)
-    master_df['GO'] = master_df['GO'] \
+    MASTER_DF['GO'] = MASTER_DF['GO'] \
         .apply(lambda x: '|'.join(sorted(list(x), key=lambda x: x.lower())) \
                 if isinstance(x, set) else None)
 
     ## Write to CSV
     print("    Writing to CSV")
-    write_to_csv(master_df, "master", gzip=True)
+    write_to_csv(MASTER_DF, "master", gzip=True)
 
     ## Write to Excel, merge rows with multi-indexing
     print("    Writing to Excel")
-    writer = pd.ExcelWriter('results/master.xlsx')
-    master_df.set_index(['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID',
-                            'AHRINGER_LOC', 'INTERPRO_DOM', 'HS_ENSG']) \
-             .to_excel(writer)
-    writer.save()
+    WRITER = pd.ExcelWriter('results/master.xlsx')
+    MASTER_DF.set_index(['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID',
+                         'AHRINGER_LOC', 'INTERPRO_DOM', 'HS_ENSG']) \
+             .to_excel(WRITER)
+    WRITER.save()
     print('Done!')

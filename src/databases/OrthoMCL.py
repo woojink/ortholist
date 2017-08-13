@@ -1,8 +1,9 @@
 import csv
 import gzip
-import pandas as pd
 
 from collections import defaultdict
+
+import pandas as pd
 
 from databases.Database import Database
 from helper.misc import generate_combinations

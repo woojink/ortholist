@@ -1,10 +1,5 @@
-import csv
-import gzip
 import pandas as pd
 
-from collections import defaultdict
-
-from helper.misc import generate_combinations
 from helper.wb_map import get_ce_wb_updated
 
 class Database(object):
@@ -20,10 +15,10 @@ class Database(object):
         self.df = self._read_raw(**kwargs)
         self.df = self._perform_worm_mapping()
         self.df = self._perform_human_mapping()
-        self.df = self._process_wb_changes(self.df)
+        self.df = self._process_wb_changes()
         self.df = self.df.drop_duplicates()
 
-    def _process_wb_changes(self, df):
+    def _process_wb_changes(self):
         """Processes the database with WormBase ID updates.
 
         Returns:
@@ -31,7 +26,7 @@ class Database(object):
             deprecated. Also includes the old IDs and comments if changed.
         """
         # Deal with WB ID changes
-        df = pd.concat([df, get_ce_wb_updated(df)], axis=1) \
+        df = pd.concat([self.df, get_ce_wb_updated(self.df)], axis=1) \
                     .sort_values(['CE_WB_CURRENT', 'HS_ENSG', 'CE_WB_OLD'])
 
         # Return the rearranged database

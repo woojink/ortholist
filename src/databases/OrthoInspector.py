@@ -24,7 +24,7 @@ class OrthoInspector(Database):
             DataFrame containing the raw orthologs from OrthoInspector
         """
         df = pd.read_csv('data/orthoinspector/orthologs.csv', sep=',',
-                    usecols=[0, 1], names=['CE_UNIPROT', 'HS_UNIPROT']) \
+                         usecols=[0, 1], names=['CE_UNIPROT', 'HS_UNIPROT']) \
                 .drop_duplicates()
 
         # if 'build_uniprot_list' in kwargs and kwargs['build_uniprot_list']:
@@ -35,11 +35,11 @@ class OrthoInspector(Database):
 
     def _perform_worm_mapping(self):
         return pd.merge(self.df, self._get_orthoinspector_uniprot_wb_map(),
-                how='left', on='CE_UNIPROT')
+                        how='left', on='CE_UNIPROT')
 
     def _perform_human_mapping(self):
         return pd.merge(self.df, self._get_orthoinspector_uniprot_ensembl_map(),
-                how='left', on='HS_UNIPROT')
+                        how='left', on='HS_UNIPROT')
 
     @staticmethod
     def _make_uniprot_list(df):
@@ -132,7 +132,7 @@ class OrthoInspector(Database):
 
         # Combine the maps
         uniprot_ensg_df = pd.concat([uniprot_ensg_df, biomart_df, scraped_df],
-                                axis=0) \
+                                    axis=0) \
                             .drop_duplicates() \
                             .reset_index(drop=True)
 

@@ -34,8 +34,8 @@ class InParanoid(Database):
             DataFrame containing the raw orthologs from InParanoid
         """
         df = pd.read_csv(self.ortholog_file,
-                            sep='\t', header=0, usecols=[0, 1],
-                            names=['CE_UNIPROT', 'HS_UNIPROT']) \
+                         sep='\t', header=0, usecols=[0, 1],
+                         names=['CE_UNIPROT', 'HS_UNIPROT']) \
                 .drop_duplicates()
 
         if build_uniprot_list:
@@ -45,11 +45,11 @@ class InParanoid(Database):
 
     def _perform_worm_mapping(self):
         return pd.merge(self.df, self._get_inparanoid_uniprot_wb_map(),
-                          how='left', on='CE_UNIPROT')
+                        how='left', on='CE_UNIPROT')
 
     def _perform_human_mapping(self):
         return pd.merge(self.df, self._get_inparanoid_uniprot_ensembl_map(),
-                          how='left', on='HS_UNIPROT')
+                        how='left', on='HS_UNIPROT')
 
     @staticmethod
     def _make_inparanoid_table(ortholog_file):
@@ -116,11 +116,11 @@ class InParanoid(Database):
         # Generate lists of UniProt genes to
         uniprot_list_ce = df['CE_UNIPROT'].drop_duplicates().sort_values()
         uniprot_list_ce.to_csv('data/inparanoid/uniprot_list_ce.csv',
-                                index=False)
+                               index=False)
 
         uniprot_list_hs = df['HS_UNIPROT'].drop_duplicates().sort_values()
         uniprot_list_hs.to_csv('data/inparanoid/uniprot_list_hs.csv',
-                                index=False)
+                               index=False)
 
     @staticmethod
     def _get_inparanoid_uniprot_wb_map():
@@ -188,7 +188,7 @@ class InParanoid(Database):
 
         # Combine the maps
         uniprot_ensg_df = pd.concat([uniprot_ensg_df, biomart_df, scraped_df],
-                                axis=0) \
+                                    axis=0) \
                             .drop_duplicates().reset_index(drop=True)
 
         return uniprot_ensg_df

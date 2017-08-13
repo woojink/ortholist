@@ -30,7 +30,8 @@ class EnsemblCompara(Database):
 
         for version in self._VERSIONS:
             # Read the ortholog list
-            df= df.append(pd.read_csv(source.format(version=version),
-                            sep='\t', header=0, usecols=[0, 2],
-                            names=['CE_WB_OLD', 'HS_ENSG'])).drop_duplicates()
+            df = df.append(pd.read_csv(source.format(version=version),
+                                       sep='\t', header=0, usecols=[0, 2],
+                                       names=['CE_WB_OLD', 'HS_ENSG'])) \
+                   .drop_duplicates()
         return df
