@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
-
 import csv
 import gzip
-import os.path
-import re
-import subprocess
-
 import pandas as pd
 
 from collections import defaultdict
-from sqlalchemy import create_engine
-from sqlalchemy_utils import database_exists, create_database
 
 from databases.EnsemblCompara import EnsemblCompara
 from databases.Homologene import Homologene
@@ -20,8 +13,6 @@ from databases.OrthoInspector import OrthoInspector
 from databases.OrthoMCL import OrthoMCL
 from databases.WormBase import WormBase
 
-from helper.misc import generate_combinations, tidy_split
-from helper.wb_map import get_ce_wb_updated
 
 def write_to_csv(df, filename, gzip=False):
     """Write the DataFrame to a CSV
