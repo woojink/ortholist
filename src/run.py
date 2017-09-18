@@ -165,8 +165,7 @@ if __name__ == "__main__":
     ## Write to Excel, merge rows with multi-indexing
     print("    Writing to Excel")
     WRITER = pd.ExcelWriter('results/master.xlsx')
-    MASTER_DF.set_index(['CE_WB_CURRENT', 'COMMON_NAME', 'LOCUS_ID',
-                         'AHRINGER_LOC', 'INTERPRO_DOM', 'HS_ENSG']) \
+    MASTER_DF.set_index(['CE_WB_CURRENT']) \
              .to_excel(WRITER)
     WRITER.save()
     print('Done!')
