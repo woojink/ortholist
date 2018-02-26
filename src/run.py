@@ -4,6 +4,7 @@
 import csv
 import gzip
 import shutil
+import subprocess
 
 from collections import defaultdict
 
@@ -218,6 +219,10 @@ if __name__ == "__main__":
         con=ENGINE,
         if_exists='replace',
     )
+
+    # SQL dump
+    subprocess.run('mysqldump ortholist -u root > results/ortholist.sql', shell=True)
+
     # gzip the output file
     with open('results/ortholist.sql', 'rb') as f_in:
         with gzip.open('results/ortholist.sql.gz', 'wb') as f_out:
