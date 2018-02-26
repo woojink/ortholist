@@ -3,6 +3,7 @@
 """
 import csv
 import gzip
+import shutil
 
 from collections import defaultdict
 
@@ -217,6 +218,10 @@ if __name__ == "__main__":
         con=ENGINE,
         if_exists='replace',
     )
+    # gzip the output file
+    with open('results/ortholist.sql', 'rb') as f_in:
+        with gzip.open('results/ortholist.sql.gz', 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
 
     ## Write to Excel, merge rows with multi-indexing
     print("    Writing to Excel")
