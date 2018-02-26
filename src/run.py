@@ -209,7 +209,6 @@ if __name__ == "__main__":
         name='ortholist',
         con=ENGINE,
         if_exists='replace',
-        index=False
     )
 
     ## Write to Excel, merge rows with multi-indexing
