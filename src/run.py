@@ -7,6 +7,8 @@ import gzip
 from collections import defaultdict
 
 import pandas as pd
+from sqlalchemy import create_engine
+from sqlalchemy_utils import database_exists, create_database
 
 from databases.EnsemblCompara import EnsemblCompara
 from databases.Homologene import Homologene
@@ -15,6 +17,10 @@ from databases.OMA import OMA
 from databases.OrthoInspector import OrthoInspector
 from databases.OrthoMCL import OrthoMCL
 from databases.WormBase import WormBase
+
+
+ENSEMBL_LOCATION = 'data/ensembl/89/ensembl_annotations.tsv.gz'
+OMIM_LOCATION = 'data/omim/OMIMDATA_2018-02-07.csv'
 
 
 def write_to_csv(df, filename, gzip=False):
@@ -39,7 +45,7 @@ def get_ensembl_annotations():
         A DataFrame containing SMART, GO, and HGNC annotations from Ensembl 89
     """
     ensembl_data = defaultdict(lambda: defaultdict(set))
-    with gzip.open('data/ensembl/89/ensembl_annotations.tsv.gz', 'rt') as file:
+    with gzip.open(ENSEMBL_LOCATION, 'rt') as file:
         reader = csv.reader(file, delimiter="\t")
         for ensg, smart, go_terms, _, hgnc in reader:
             if smart:
@@ -54,6 +60,28 @@ def get_ensembl_annotations():
 
     return ensembl_df
 
+
+def get_omim_annotations():
+    """Retrieve OMIM annotations
+
+    Returns:
+        A DataFrame containing OMIM annotations
+    """
+    omim_data = defaultdict(lambda: defaultdict(list))
+    with open(OMIM_LOCATION, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+
+        for ensg, gene, phenotype in reader:
+            omim_data[ensg]['OMIM_GENES'] = set(gene.split())
+            omim_data[ensg]['OMIM_PHENOTYPES'] = \
+                set([x.strip() for x in phenotype.split('|')])
+    omim_df = pd.DataFrame.from_dict(omim_data, orient='index')
+    omim_df.reset_index(inplace=True)
+    omim_df.rename(columns={'index': 'HS_ENSG'}, inplace=True)
+
+    return omim_df
+
 if __name__ == "__main__":
     ####################
     # Process the orthologs
@@ -62,13 +90,13 @@ if __name__ == "__main__":
     COMPARA = EnsemblCompara()
     HOMOLOGENE = Homologene()
     INPARANOID = InParanoid()
-    OMA = OMA()
+    OMA_DF = OMA()
     ORTHOINSPECTOR = OrthoInspector()
     ORTHOMCL = OrthoMCL()
     WORMBASE = WormBase()
 
     ORTHOLOG_DATABASES = [COMPARA, HOMOLOGENE, INPARANOID,
-                          OMA, ORTHOINSPECTOR, ORTHOMCL]
+                          OMA_DF, ORTHOINSPECTOR, ORTHOMCL]
     ALL_DATABASES = ORTHOLOG_DATABASES + [WORMBASE]
 
     ####################
@@ -147,6 +175,10 @@ if __name__ == "__main__":
     MASTER_DF = pd.merge(MASTER_DF, get_ensembl_annotations(),
                          how='left', on='HS_ENSG')
 
+    ## Add information from OMIM annotations
+    MASTER_DF = pd.merge(MASTER_DF, get_omim_annotations(),
+                         how='left', on='HS_ENSG')
+
     ## Join lists into pipe-separated strings
     MASTER_DF['Databases'] = MASTER_DF['Databases'] \
         .apply(lambda x: '|'.join(sorted(list(x))) \
@@ -157,10 +189,28 @@ if __name__ == "__main__":
     MASTER_DF['GO'] = MASTER_DF['GO'] \
         .apply(lambda x: '|'.join(sorted(list(x), key=lambda x: x.lower())) \
                 if isinstance(x, set) else None)
+    MASTER_DF['OMIM_GENES'] = MASTER_DF['OMIM_GENES'] \
+        .apply(lambda x: '|'.join(sorted(list(x))) \
+                if isinstance(x, set) else None)
+    MASTER_DF['OMIM_PHENOTYPES'] = MASTER_DF['OMIM_PHENOTYPES'] \
+           .apply(lambda x: '|'.join(sorted(list(x), key=lambda x: x.lower())) \
+                if isinstance(x, set) else None)
 
     ## Write to CSV
     print("    Writing to CSV")
     write_to_csv(MASTER_DF, "master", gzip=True)
+
+    ## Write to database
+    print('\nConnecting to database...')
+    ENGINE = create_engine('mysql://root:@localhost/ortholist')
+    if not database_exists(ENGINE.url):
+        create_database(ENGINE.url)
+    MASTER_DF.to_sql(
+        name='ortholist',
+        con=ENGINE,
+        if_exists='replace',
+        index=False
+    )
 
     ## Write to Excel, merge rows with multi-indexing
     print("    Writing to Excel")
