@@ -15,6 +15,7 @@ from databases.Homologene import Homologene
 from databases.InParanoid import InParanoid
 from databases.OMA import OMA
 from databases.OrthoInspector import OrthoInspector
+from databases.Ortholist import Ortholist
 from databases.OrthoMCL import OrthoMCL
 from databases.WormBase import WormBase
 
@@ -166,6 +167,12 @@ if __name__ == "__main__":
 
     ## Throw away ENSG IDs not present in Ensembl Compara 89 per Dan
     MASTER_DF = pd.merge(MASTER_DF, ENSEMBL89_ENSG, how="inner", on="HS_ENSG")
+
+    ## Fetch legacy orthologs and append
+    ORTHOLIST_DF = Ortholist().get_df()
+    ORTHOLIST_DF['Databases'] = [['Legacy Ortholist'] for _ in range(len(ORTHOLIST_DF))]
+    ORTHOLIST_DF['Score'] = 0
+    MASTER_DF = MASTER_DF.append(ORTHOLIST_DF)
 
     ## Add information from WormBase db (common name, Ahringer location, etc.)
     MASTER_DF = pd.merge(MASTER_DF, WORMBASE.get_df(),
