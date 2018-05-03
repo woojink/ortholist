@@ -50,15 +50,15 @@ class WormBase(object):
         # Read Ahringer locations, mapped to WS239
         ahringer_df = pd.read_csv("data/ahringer/locations_ws239.csv", sep=',',
                                   header=None, usecols=[0, 1],
-                                  names=["AHRINGER_LOC", 'CE_WB_OLD']) \
-                        .groupby('CE_WB_OLD')['AHRINGER_LOC'] \
-                        .apply(lambda x: '|'.join(x)) \
-                        .reset_index()
+                                  names=["AHRINGER_LOC", 'CE_WB_OLD'])
 
         # Deal with WB ID changes
         ahringer_df = pd.concat([ahringer_df, get_ce_wb_updated(ahringer_df)], \
                             axis=1) \
-                        .sort_values(['CE_WB_CURRENT']).reset_index(drop=True)
+                        .sort_values(['CE_WB_CURRENT']).reset_index(drop=True) \
+                        .groupby('CE_WB_CURRENT')['AHRINGER_LOC'] \
+                        .apply(lambda x: '|'.join(sorted(x))) \
+                        .reset_index()
 
         # Read InterPro domains
         ip_dict = defaultdict(set)
@@ -73,6 +73,7 @@ class WormBase(object):
                 # InterPro domains are separated by '|' for each WormBase ID
                 for domain in domains:
                     ip_dict[wb_id].add(domain)
+
         interpro_df = pd.DataFrame( \
                         [(k, '|'.join(sorted(v))) for k, v in ip_dict.items()],
                         columns=['CE_WB_CURRENT', 'INTERPRO_DOM'])
