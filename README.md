@@ -1,6 +1,6 @@
-# Ortholist 2
+# [Ortholist 2](http://ortholist.shaye-lab.org/)
 ## Overview
-This project updates Ortholist ([version 1 here](http://www.greenwaldlab.org/ortholist/)) with results from both additional ortholog prediction programs and updated releases of previously included programs.
+This project updates Ortholist ([version 1 here](http://www.greenwaldlab.org/ortholist/)) with results from both additional ortholog prediction programs and updated releases of previously included programs. The live project is located [here](http://ortholist.shaye-lab.org/) and the corresponding paper is located [here](http://www.genetics.org/content/early/2018/08/17/genetics.118.301307).
 
 ## Databases used
 * Ensembl Compara (Releases 87, 2016-12; 88, 2017-03; and 89, 2017-05)
